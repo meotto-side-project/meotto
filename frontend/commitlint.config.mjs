@@ -1,7 +1,7 @@
 export default {
   extends: ["@commitlint/config-conventional"],
   rules: {
-    "scope-enum": [2, "always", ["web", "mobile", "FE"]],
+    "scope-enum": [2, "always", ["web", "mobile", "fe"]],
     "scope-empty": [0],
 
     "subject-max-length": [2, "always", 50],
