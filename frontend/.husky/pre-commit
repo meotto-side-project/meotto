@@ -1,2 +1,2 @@
-cd meotto-frontend
+cd frontend
 pnpm exec lint-staged
