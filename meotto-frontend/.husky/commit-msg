@@ -1,0 +1,3 @@
+MSG="$(realpath "$1")"
+cd meotto-frontend
+pnpm exec commitlint --edit "$MSG"
