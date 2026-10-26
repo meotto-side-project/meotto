@@ -19,8 +19,8 @@
 | [auth-onboarding.md](auth-onboarding.md) | F-01~F-04 | 스플래시, 온보딩, 회원가입/로그인, 비회원 진입 |
 | [home.md](home.md) | F-10~F-16 | 회원/비회원 홈, 새 편지·토마토 박스·빈 상태, 내 토마토 확인 |
 | [send-stamp.md](send-stamp.md) | F-20~F-24 | 친구 선택, 메시지 작성, 도장찍기, 전송, 비회원 도장 보내기 |
-| [my-board.md](my-board.md) | F-30~F-36 | 내 칭찬판, 뱃지, 많이 받은 칭찬, 주고 받은 토마토, 공유 |
-| [mypage-settings.md](mypage-settings.md) | F-40~F-44 | 프로필, 서비스 설정, 공개 범위, 로그아웃, 회원탈퇴 |
+| [my-board.md](my-board.md) | F-30~F-35 | 내 칭찬판, 뱃지, 많이 받은 칭찬, 주고 받은 토마토, 뱃지 공유 |
+| [mypage-settings.md](mypage-settings.md) | F-40~F-45 | 프로필, 칭찬판 공유(QR/링크/SNS), 서비스 설정, 공개 범위, 로그아웃, 회원탈퇴 |
 | [friends.md](friends.md) | F-50~F-54 | 친구 검색/추가/목록, 친구 칭찬판 |
 | [notifications.md](notifications.md) | F-60~F-61 | 푸시 알림, 인앱 배너 |
 | [design-system.md](design-system.md) | - | 색상, 타이포, 반경, 공통 컴포넌트 |
