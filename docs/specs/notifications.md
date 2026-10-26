@@ -9,7 +9,7 @@ Figma 섹션: 알림창 (잠금화면 알림), 내 칭찬판 상단 배너
 
 ## AC
 
-- 도장 수신 시 F-60이 발송된다. 수신자의 `칭찬 알림`이 Off면 발송하지 않는다 ([mypage-settings.md](mypage-settings.md) F-41).
+- 도장 수신 시 F-60이 발송된다. 수신자의 `칭찬 알림`이 Off면 발송하지 않는다 ([mypage-settings.md](mypage-settings.md) F-42).
 - F-61은 X를 누르면 닫힌다.
 
 ## 범위 밖
