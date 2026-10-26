@@ -1,0 +1,37 @@
+[
+  {
+    "name": "✨ feature",
+    "color": "B9D7EA",
+    "description": "새 기능 추가"
+  },
+  {
+    "name": "🐞 fix",
+    "color": "F4B6C2",
+    "description": "버그 수정"
+  },
+  {
+    "name": "📃 docs",
+    "color": "FFE3B3",
+    "description": "문서만 수정"
+  },
+  {
+    "name": "🎨 style",
+    "color": "E3D4F3",
+    "description": "코드 의미 없는 스타일 변경 (포맷, 세미콜론 등)"
+  },
+  {
+    "name": "🛠️ refactor",
+    "color": "CDE8E1",
+    "description": "기능 변화 없는 리팩터링"
+  },
+  {
+    "name": "✅ test",
+    "color": "CDEFB7",
+    "description": "테스트 코드 관련 변경"
+  },
+  {
+    "name": "🧾 chore",
+    "color": "E6D9EC",
+    "description": "빌드, 설정, 기타 잡일"
+  }
+]

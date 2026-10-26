@@ -1,0 +1,101 @@
+plugins {
+    id 'java'
+    id 'checkstyle'
+    id 'org.springframework.boot' version '4.0.2'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'com.diffplug.spotless' version '8.10.4'
+}
+
+group = 'com.meotto'
+version = '0.0.1-SNAPSHOT'
+description = 'meotto-backend-api'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    // JPA
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+    // MySQL
+    runtimeOnly 'com.mysql:mysql-connector-j'
+
+    // Validation
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // WebClient for external API calls
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+    // Security
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    testImplementation 'org.springframework.security:spring-security-test'
+    implementation 'org.springframework.boot:spring-boot-starter-security-oauth2-client'
+
+    // JWT
+    implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.13.0'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.13.0'
+
+    // Redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+    // Actuator
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+    // AWS S3
+    implementation platform('software.amazon.awssdk:bom:2.25.0')
+    implementation 'software.amazon.awssdk:s3'
+
+    // Firebase
+    implementation 'com.google.firebase:firebase-admin:9.4.2'
+
+    // Swagger (SpringDoc OpenAPI)
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3'
+
+    // Test
+    testImplementation 'com.h2database:h2'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+spotless {
+    java {
+        target 'src/*/java/**/*.java'
+        eclipse().configFile('config/formatter/naver-eclipse-formatter.xml')
+        importOrderFile('config/formatter/naver.importorder')
+        removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+}
+
+checkstyle {
+    toolVersion = '10.20.2'
+    configFile = file('config/checkstyle/naver-checkstyle-rules.xml')
+    configProperties = ['suppressionFile': file('config/checkstyle/naver-checkstyle-suppressions.xml').absolutePath]
+    maxWarnings = 0
+}
+
+tasks.withType(Checkstyle).configureEach {
+    reports {
+        xml.required = false
+        html.required = true
+    }
+}

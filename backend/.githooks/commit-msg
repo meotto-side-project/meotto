@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+# MEOTTO 커밋 컨벤션 검증 (Node/Husky/commitlint 없이 순수 bash로 동작)
+#
+# 규칙:
+#   - 형식: "type: 제목" (scope 없음)
+#   - type: feat|fix|docs|style|refactor|test|chore|revert|merge
+#   - 제목: 50자 이내, 마침표(.)로 끝나지 않음
+#   - body 작성 시: 제목과 빈 줄로 구분, 각 줄은 '-'로 시작
+
+set -euo pipefail
+
+MSG_FILE="$1"
+SUBJECT="$(sed -n '1p' "$MSG_FILE")"
+
+TYPES="feat|fix|docs|style|refactor|test|chore|revert|merge"
+
+fail() {
+  echo "❌ 커밋 메시지 규칙 위반: $1" >&2
+  echo "   형식: type: 제목 (타입: feat/fix/docs/style/refactor/test/chore/revert/merge)" >&2
+  echo "   예) feat: 도장 발급 로직 추가" >&2
+  exit 1
+}
+
+if [[ -z "$SUBJECT" ]]; then
+  fail "커밋 메시지가 비어 있습니다"
+fi
+
+if ! [[ "$SUBJECT" =~ ^($TYPES):\ .+$ ]]; then
+  fail "\"$SUBJECT\" — \"type: 제목\" 형식이 아니거나 scope가 포함되어 있습니다"
+fi
+
+TITLE="${SUBJECT#*: }"
+
+if [[ ${#TITLE} -gt 50 ]]; then
+  fail "제목이 50자를 초과합니다 (현재 ${#TITLE}자)"
+fi
+
+if [[ "$TITLE" == *. ]]; then
+  fail "제목은 마침표(.)로 끝날 수 없습니다"
+fi
+
+# body 검증 (2번째 줄은 반드시 빈 줄, 이후 각 줄은 '-'로 시작)
+LINE_COUNT="$(wc -l < "$MSG_FILE" | tr -d ' ')"
+if [[ "$LINE_COUNT" -gt 1 ]]; then
+  SECOND_LINE="$(sed -n '2p' "$MSG_FILE")"
+  if [[ -n "$SECOND_LINE" ]]; then
+    fail "제목과 body 사이에는 빈 줄이 있어야 합니다"
+  fi
+
+  BODY="$(tail -n +3 "$MSG_FILE" | grep -v '^#' | sed '/^$/d')"
+  if [[ -n "$BODY" ]]; then
+    while IFS= read -r line; do
+      if [[ "$line" != -* ]]; then
+        fail "body의 각 줄은 '-'로 시작해야 합니다: \"$line\""
+      fi
+    done <<< "$BODY"
+  fi
+fi
+
+exit 0
