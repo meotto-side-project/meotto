@@ -14,4 +14,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 영역별 지침
 
-백엔드·프론트엔드 지침은 각 폴더의 `AGENTS.md`를 따른다.
+백엔드·프론트엔드 지침은 각 영역 폴더의 지침 파일을 따른다.
+
+- 백엔드: [backend/CLAUDE.md](backend/CLAUDE.md)
+- 프론트엔드 web: [frontend/apps/web/AGENTS.md](frontend/apps/web/AGENTS.md)
+- 프론트엔드 mobile: [frontend/apps/mobile/AGENTS.md](frontend/apps/mobile/AGENTS.md)
