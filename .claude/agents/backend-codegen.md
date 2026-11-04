@@ -90,7 +90,7 @@ src/main/java/com/meotto/api/
 
 ## Task Execution
 
-1. Task와 대응 AC 확인
+1. Task와 대응 AC 확인. 대응 Spec 항목에 `[논의 필요]` 또는 `(확인 필요)` 표시가 있으면 그 부분은 구현하지 말고 보고한다
 2. 수정/생성할 파일과 레이어 경계 파악
 3. 의존성 순서로 파일 생성: ErrorCode → record Model → Entity → Repository → Service → Controller
 4. 레이어 간 import 위반, 주석 잔존 여부 확인

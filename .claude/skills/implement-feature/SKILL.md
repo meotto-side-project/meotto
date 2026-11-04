@@ -15,7 +15,11 @@ argument-hint: "<Task ID 또는 Linear ID> 예: T-F10-03 또는 MEO-12 (여러 �
 
 1. `docs/plans/*.md`에서 대상 Task를 찾는다. Linear ID(`MEO-xx`)가 주어지면 Tasks 표의 Linear 열로 찾는다. 없으면 멈춘다.
 2. 해당 Plan의 `상태`가 `approved`인지 확인한다. `draft`면 멈춘다.
-3. Task의 선행 Task가 있으면 완료 여부를 사용자에게 확인한다 (상태 기준은 Linear, 또는 사용자의 답).
+3. 선행을 확인한다. 대상은 Task의 `선행` 열(같은 Plan과 다른 Plan의 Task)과 Plan의 "선행 Plan과 가정" 표다.
+   - 각 선행 Task의 Linear 상태를 조회한다 (Linear MCP가 없으면 사용자에게 묻는다). `Done`이거나 코드에 이미 있으면 충족이다.
+   - **하드 의존이 미충족이면 멈춘다.** 어떤 선행이 필요한지 보고하고, 선행 구현을 먼저 하거나 Plan의 가정 방식(`plan-feature` 선택지 B)으로 진행해도 되는지 사용자에게 묻는다. 허락 없이 선행 기능을 이 Skill에서 같이 구현하지 않는다.
+   - 소프트 의존만 미충족이면 경고하고 진행한다. 통합·E2E 검증은 선행 완료 전까지 미검증으로 남긴다.
+   - 가정으로 진행하는 Task는 가정 목록을 Agent 프롬프트에 그대로 넣고, 가정을 벗어나는 구현을 하지 않게 한다.
 4. 현재 브랜치가 `main`이 아닌지 확인한다. `main`이면 멈추고 `.claude/rules/git.md`의 브랜치명으로 브랜치를 만들도록 안내한다 (브랜치 생성은 사용자 승인 후).
 5. `git status`로 작업 트리를 확인한다. 이 Task와 무관한 변경이 있으면 알린다.
 
@@ -29,7 +33,7 @@ Task의 영역에 따라 Agent 도구로 호출한다.
 
 | 영역 | Agent |
 |---|---|
-| FE | `frontend-codegen` |
+| FE-web, FE-mobile | `frontend-codegen` (프롬프트에 플랫폼 `web`/`mobile`을 명시) |
 | BE | `backend-codegen` |
 | 공통 | 영역별 Task로 쪼개 각각 호출. 쪼갤 수 없으면 사용자에게 선택을 묻는다 |
 
@@ -73,3 +77,5 @@ API가 걸린 Task는 Agent 보고의 `계약 변경 필요`와 실제 코드를
 ```
 
 완료 판단은 명령 실행 결과로만 한다. Linear 상태는 바꾸지 않는다 (GitHub–Linear 연동에 맡긴다).
+
+사람이 코드를 고치기 전에 `/git-commit`으로 먼저 커밋하면 그 커밋이 "AI 초안"으로 기록된다 (`git-commit`이 body에 표시). 수정량 측정을 위해 이 순서를 안내한다.
