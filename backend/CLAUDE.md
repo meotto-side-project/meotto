@@ -77,12 +77,14 @@ com.meotto.api
 
 | 도메인 | 역할 |
 |--------|------|
-| (TBD) | 아직 도메인 구현 전 — 기능 개발과 함께 채워 넣기 |
+| user | 유저 정보 (이메일, 닉네임, 소셜 로그인 provider/providerId, role) |
+| auth | 카카오 소셜 로그인(토큰 검증), JWT 발급/재발급, 로그아웃 |
+| (TBD) | 이후 도메인 구현 전 — 기능 개발과 함께 채워 넣기 |
 
-`global/security`에 JWT 발급/검증 스켈레톤(`JwtTokenProvider`, `JwtTokenExtractor`, `JwtAuthenticationFilter`)만
-준비되어 있고, 실제 로그인(OAuth2 등)·회원 도메인은 아직 구현되어 있지 않다.
-`SecurityConfig`는 `/admin/**`만 `ADMIN` 권한으로 막아두고 나머지는 전부 허용 상태이므로,
-도메인 추가 시 `authorizeHttpRequests`에 해당 경로의 인증 규칙을 직접 추가해야 한다.
+`global/security`에는 JWT 발급/검증 스켈레톤(`JwtTokenProvider`, `JwtTokenExtractor`, `JwtAuthenticationFilter`)이,
+`domain/auth`에는 실제 로그인(카카오 accessToken 검증 방식) 구현이 있다. Naver/Google은 아직 미구현.
+`SecurityConfig`는 `/admin/**`(ADMIN 권한), `/auth/logout`(인증 필요), `/auth/**`(permitAll) 외 나머지는 전부
+허용 상태이므로, 도메인 추가 시 `authorizeHttpRequests`에 해당 경로의 인증 규칙을 직접 추가해야 한다.
 
 ## 핵심 코드 패턴
 
