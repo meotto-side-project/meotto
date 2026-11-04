@@ -32,6 +32,7 @@ type: 요약
 - 제목: `[Type] 요약` (`[Feat]` `[Fix]` `[Docs]` `[Refactor]` `[Style]` `[Test]` `[Chore]`)
 - 본문: `.github/PULL_REQUEST_TEMPLATE.md` 양식을 채운다. 관련 Spec(F-ID), Linear 이슈, 검증 결과, 미해결 사항을 포함한다.
 - 라벨: `.github/labels.json`에 있는 것만 사용한다.
+- 리뷰어: 교차 리뷰. 저장소 협업자 중 PR 작성자를 뺀 나머지 전원을 리뷰어로 지정한다.
 - push, PR 생성, 머지는 사용자 승인 후에만 한다. force push 금지.
 
 ## 훅 주의
