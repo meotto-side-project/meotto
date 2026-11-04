@@ -43,7 +43,7 @@ push할 브랜치와 커밋 목록을 보여 주고 승인을 받는다.
 - **What is this PR?**: 문제와 배경 → 이 PR이 해결하는 것, 결과
 - **Changes**:
   - 주요 변경과 설계 결정(왜 그렇게 했는가). 구현한 Task 목록(`T-F10-01 ...`)
-  - **검증 결과** 소제목: 실행한 명령과 결과 표, 미검증 항목과 이유, AC 충족 현황(`/verify-feature` 결과가 있으면 요약)
+  - **검증 결과** 소제목: 실행한 명령과 결과 표, 미검증 항목과 이유, AC 충족 현황(`/verify-feature` 결과가 있으면 요약). 하네스로 구현한 경우 `git log --grep='AI 초안'`으로 찾은 AI 초안 커밋 SHA도 적는다 (없으면 생략)
   - **미해결 사항** 소제목: 남은 질문, 후속 작업, Plan과 다르게 된 부분
 - **Related Issues**:
   - Spec: `docs/specs/<file>.md` F-xx~yy
@@ -62,7 +62,7 @@ PR 본문 초안을 사용자에게 보여 준다.
 - `--title`, `--body`
 - `--assignee @me`
 - `--label`: `gh label list`에 있는 라벨만. 변경 type에 맞는 것 하나 (feature, fix, docs, style, refactor, test, chore 계열)
-- `--reviewer`: 사용자가 지정하면 사용. 지정이 없으면 묻는다 (임의로 지정하지 않는다)
+- `--reviewer`: **교차 리뷰.** `gh api repos/{owner}/{repo}/collaborators --jq '.[].login'`으로 협업자를 얻고, PR 작성자(`gh api user --jq .login`)를 뺀 나머지 전원을 지정한다 (협업자 3명이면 작성자 외 2명). 사용자가 다르게 지정하면 그대로 따른다. 협업자 조회에 실패하거나 작성자를 빼고 0명이면 사용자에게 묻는다.
 
 머지(`gh pr merge`)는 하지 않는다.
 
