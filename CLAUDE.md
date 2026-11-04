@@ -33,6 +33,7 @@ Spec → Plan → Tasks → Linear → Implementation → Verification → PR
 | 4. 구현 | `/implement-feature` | `frontend-codegen`, `backend-codegen` 조율 | 계약·DB 변경 시 |
 | 5. 검증 | `/verify-feature` | `spec-verifier`가 AC별 증거 수집 | - |
 | 6. PR | `/git-commit` → `/create-pr` | 커밋, push, PR | 커밋·push·PR 생성 각각 |
+| 7. 측정 | `/log-metrics` | 시간, 수정량, AC 충족, 유지보수 비용을 `docs/metrics/`에 기록 (수동 PR도 같은 방식) | 기록 추가 시 |
 
 단계 사이에는 사람이 확인한다. 위 명령은 모두 `/명령`으로 직접 실행한다 (자동 호출에 의존하지 않는다).
 
@@ -70,5 +71,5 @@ Spec → Plan → Tasks → Linear → Implementation → Verification → PR
 ## 규칙 파일
 
 - `.claude/rules/git.md`: 브랜치, 커밋, PR 규칙 (전체 공통)
-- `.claude/rules/frontend.md`, `backend.md`, `database.md`: 해당 경로를 다룰 때 로드
+- `.claude/rules/frontend.md`(공통), `frontend-web.md`, `frontend-mobile.md`, `backend.md`, `database.md`: 해당 경로를 다룰 때 로드
 - `.claude/rules/specs.md`: `docs/specs`, `docs/plans`를 다룰 때 로드
