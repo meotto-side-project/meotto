@@ -1,14 +1,21 @@
 ---
 name: create-api-hook
-description: 프론트엔드(apps/web) API 연동 코드 생성. 엔드포인트 상수, 쿼리 키, Zod 스키마, TanStack Query 조회/변경 훅을 Plan의 API 계약 표 기준으로 만든다. "API 추가", "쿼리 훅", "mutation" 작업 시 사용.
-argument-hint: "<Plan의 API 계약 ID 또는 엔드포인트>"
+description: 프론트엔드(웹 또는 모바일) API 연동 코드 생성. 엔드포인트 상수, 쿼리 키, Zod 스키마, TanStack Query 조회/변경 훅을 Plan의 API 계약 표 기준으로 만든다. "API 추가", "쿼리 훅", "mutation" 작업 시 사용.
+argument-hint: "<web|mobile> <Plan의 API 계약 ID 또는 엔드포인트>"
 ---
 
-# API 연동 훅 생성 (apps/web)
+# API 연동 훅 생성
 
 대상: $ARGUMENTS
 
-TIMO 패턴을 따른다. 위치는 `frontend/apps/web/src/components/features/[feature]/`, 별칭은 `@/src/...`.
+## 플랫폼과 위치
+
+첫 인자(`web` 또는 `mobile`)로 정한다. 없으면 Plan Task의 영역에서 확인하고, 모르면 묻는다.
+
+- 웹: `frontend/apps/web/src/components/features/[feature]/`, 별칭 `@/src/...`
+- 모바일: `frontend/apps/mobile/src/components/features/[feature]/` (훅 패턴은 동일. 라우트 `src/app/` 안에는 두지 않는다)
+- 같은 API를 두 앱이 쓰면 Zod 스키마, 엔드포인트 상수, 타입을 `frontend/packages/shared`에 두고 양쪽 훅이 import한다. 패키지가 없으면 만들기 전에 승인받는다.
+- 웹의 공유 콘텐츠 페이지(SEO 대상)는 이 훅이 아니라 **서버 컴포넌트에서 직접 fetch**한다. 훅은 클라이언트에서 상호작용하는 부분에만 쓴다 (`frontend-web.md`).
 
 ## 시작 전 확인
 

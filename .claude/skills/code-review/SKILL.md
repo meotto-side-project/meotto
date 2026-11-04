@@ -52,7 +52,21 @@ argument-hint: "[범위: 파일/디렉터리/브랜치 기준, 기본은 현재 
 - [ ] N+1 없음 (루프 안 단건 조회 → `findAllByIdIn()`)
 - [ ] 네이밍: `*Controller` `*Service` `*Repository` `*Entity` `*ErrorCode` `*Scheduler`, DTO는 `*Request` `*Response`
 
-## 4. 프론트엔드 (`.claude/rules/frontend.md` 기준)
+## 4. 프론트엔드 (`.claude/rules/frontend.md` 공통 + `frontend-web.md` 또는 `frontend-mobile.md` 기준)
+
+변경 경로가 `apps/web`이면 웹, `apps/mobile`이면 모바일 항목을 추가로 본다.
+
+### 웹 추가 점검
+- ❌ 공유 콘텐츠 페이지에 `generateMetadata`(title, description, openGraph, twitter, canonical)가 없다
+- ❌ 공유 페이지가 클라이언트에서만 데이터를 불러와 렌더링한다 (서버 렌더링 필요)
+- ❌ 비공개·무효 토큰 케이스에서 이름, 도장 수 같은 개인 정보가 메타·OG에 들어간다 / `noindex`가 없다 / 없는 대상에 200을 응답한다
+
+### 모바일 추가 점검
+- ❌ 라우트(`src/app/`) 안에 컴포넌트·로직이 있다 → ✅ 밖으로 분리
+- ❌ `StyleSheet`에 토큰이 아닌 임의 색·간격 값을 쓴다
+- ❌ 눌리는 요소에 `accessibilityRole`/`accessibilityLabel`이 없거나 터치 영역이 44pt 미만이다
+- ❌ 화면에서 `fetch`를 직접 호출한다 → ✅ `src/lib/api` 래퍼 + 쿼리 훅
+- ❌ 토큰 같은 민감값을 `AsyncStorage`에 저장한다 → ✅ `expo-secure-store`
 
 ### 규칙 위반
 - ❌ `any` 타입 → ✅ 구체 타입
@@ -69,8 +83,8 @@ argument-hint: "[범위: 파일/디렉터리/브랜치 기준, 기본은 현재 
 - ❌ 타입이 Plan의 API 계약과 다름 → ✅ 계약 일치
 
 ### UI 품질
-- ❌ `ComponentProps` 확장 없이 네이티브 props 중복 정의
-- ❌ `cn()` 없이 클래스 문자열 이어 붙이기
+- ❌ (웹) `ComponentProps` 확장 없이 네이티브 props 중복 정의
+- ❌ (웹) `cn()` 없이 클래스 문자열 이어 붙이기
 - ❌ 인터랙티브 요소에 라벨/접근성 속성, 시맨틱 태그 없음
 - ❌ 불필요한 순차 `await`(워터폴), 인라인 객체 prop·effect 남용으로 인한 리렌더
 

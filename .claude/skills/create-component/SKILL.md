@@ -1,14 +1,16 @@
 ---
 name: create-component
-description: 프론트엔드(apps/web) UI 컴포넌트 스캐폴딩. components/ui 또는 features 규칙에 맞는 컴포넌트 파일과 Storybook 스토리를 만든다. "컴포넌트 만들어", "UI 컴포넌트" 요청 시 사용.
-argument-hint: "<컴포넌트 이름과 용도>"
+description: 프론트엔드 UI 컴포넌트 스캐폴딩(웹 또는 모바일). ui 또는 features 규칙에 맞는 컴포넌트 파일을 만든다. 웹은 Storybook 스토리도 만든다. "컴포넌트 만들어", "UI 컴포넌트" 요청 시 사용.
+argument-hint: "<web|mobile> <컴포넌트 이름과 용도>"
 ---
 
-# 컴포넌트 스캐폴딩 (apps/web)
+# 컴포넌트 스캐폴딩
 
 대상: $ARGUMENTS
 
-TIMO 관례를 따른다. 모든 경로는 `frontend/apps/web/` 기준이고 import 별칭은 `@/src/...`다. `apps/mobile`(Expo)에는 이 절차를 쓰지 않는다.
+## 플랫폼
+
+첫 인자(`web` 또는 `mobile`)로 정한다. 없으면 Plan Task의 영역(`FE-web`/`FE-mobile`)에서 확인하고, 그래도 모르면 묻는다. 아래 본문은 **웹**(`frontend/apps/web/`, import 별칭 `@/src/...`) 기준이고, 모바일은 맨 아래 "모바일" 절을 따른다. 규칙은 `.claude/rules/frontend.md`와 플랫폼별 `frontend-web.md`/`frontend-mobile.md`.
 
 ## 시작 전 확인
 
@@ -89,3 +91,54 @@ Storybook 버전에 맞는 import 경로는 설치된 패키지를 보고 맞춘
 ## 검증
 
 `cd frontend && pnpm lint && pnpm check-types`. 인터랙션 테스트가 필요하면 `create-test`로 이어간다.
+
+## 모바일 (`frontend/apps/mobile/`)
+
+`.claude/rules/frontend-mobile.md`를 먼저 읽는다. 스타일 토큰(`src/theme/`)이 아직 없으면 `docs/specs/design-system.md`를 보고 필요한 최소 토큰을 만들지 사용자에게 묻는다. Storybook은 쓰지 않는다.
+
+- 위치: 범용은 `src/components/ui/[Name]/[Name].tsx`, 기능 전용은 `src/components/features/[feature]/[Name]/[Name].tsx`. 라우트(`src/app/`) 안에는 컴포넌트를 두지 않는다.
+- 함수형, props 타입 명시, default export. `StyleSheet.create`와 토큰만 사용한다.
+- 눌리는 요소에는 `accessibilityRole`, `accessibilityLabel`, 터치 영역 44pt 이상.
+
+```tsx
+import { Pressable, StyleSheet, Text } from "react-native";
+
+import { colors, radius, spacing } from "@/theme/tokens";
+
+interface ButtonProps {
+  label: string;
+  onPress: () => void;
+  disabled?: boolean;
+}
+
+const Button = ({ label, onPress, disabled = false }: ButtonProps) => {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled }}
+      disabled={disabled}
+      onPress={onPress}
+      style={styles.button}
+    >
+      <Text style={styles.label}>{label}</Text>
+    </Pressable>
+  );
+};
+
+const styles = StyleSheet.create({
+  button: {
+    minHeight: 44,
+    paddingHorizontal: spacing.lg,
+    borderRadius: radius.md,
+    backgroundColor: colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  label: { color: colors.onPrimary },
+});
+
+export default Button;
+```
+
+import 별칭(`@/theme/tokens`)은 `apps/mobile/tsconfig.json`의 `paths`를 확인해서 맞춘다. 없으면 상대 경로를 쓰고 별칭 추가는 묻는다. 검증은 `cd frontend && pnpm lint && pnpm check-types`이고, 화면에서의 모양은 사람이 시뮬레이터에서 확인한다.
