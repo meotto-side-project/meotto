@@ -17,7 +17,8 @@
 
 - 커밋/PR에는 기능 ID(`F-xx`)를 적는다.
 - 스펙에 **[논의 필요]**로 표시된 항목은 임의로 정하지 말고 사용자에게 확인한다.
-- 구현 중 스펙과 다른 결정을 했다면 임의로 진행하지 말고 사용자에게 알린다. 승인을 받아 해당 스펙 파일도 함께 수정한다.
+- 구현 중 스펙과 다른 결정을 했다면 해당 스펙 파일도 함께 수정한다.
+  - 스펙 수정은 AI가 직접 반영하고, 어떤 파일의 무엇을 바꿨는지 결과 보고에 적는다. 사용자는 PR diff에서 검토한다.
 
 ## SDD 워크플로
 
@@ -27,7 +28,7 @@ Spec → Plan → Tasks → Linear → Implementation → Verification → PR
 
 | 단계 | 명령 | 수행 | 사람 승인 |
 |---|---|---|---|
-| 1. 명세 분석 | `/plan-feature` (내부에서 `spec-analyst`) | 모호함, 누락, 의존성을 질문으로 정리 | Spec 수정과 질문 답변은 사람 |
+| 1. 명세 분석 | `/plan-feature` (내부에서 `spec-analyst`) | 모호함, 누락, 의존성을 질문으로 정리 | 질문 답변은 사람 (Spec 수정은 AI가 반영) |
 | 2. 설계 | `/plan-feature` | `docs/plans/<feature>.md` 생성 (기술 설계, API 계약, Tasks) | Plan과 API 계약 승인 |
 | 3. Linear | `/sync-linear-issues` | Tasks를 이슈·서브이슈와 연결 | 생성 목록 확인 |
 | 4. 구현 | `/implement-feature` | `frontend-codegen`, `backend-codegen` 조율 | 계약·DB 변경 시 |
@@ -39,7 +40,7 @@ Spec → Plan → Tasks → Linear → Implementation → Verification → PR
 
 ## 문서 책임
 
-- `docs/specs/*.md`: **무엇을** 만드는가. 사람만 수정한다. AI는 질문과 수정 제안만 한다.
+- `docs/specs/*.md`: **무엇을** 만드는가. 구현 중 결정이 달라지거나 사용자가 답을 주면 AI가 직접 수정하고 변경 내용을 보고한다. `[논의 필요]`처럼 사람이 정해야 하는 모호한 점은 임의로 정하지 않고 질문한다.
 - `docs/plans/<feature>.md`: **어떻게** 만드는가. Plan(설계, API 계약)과 Tasks(작업 목록, Linear ID).
 - Spec과 Plan이 충돌하면 Spec이 맞다. 충돌을 발견하면 임의로 해결하지 말고 질문한다.
 - Task 진행 상태의 기준은 Linear다. Plan 파일에는 Linear ID만 기록한다.
@@ -61,7 +62,7 @@ Spec → Plan → Tasks → Linear → Implementation → Verification → PR
 
 ## 안전 규칙
 
-1. Spec, API 계약, DB 스키마, 삭제성 쿼리를 바꾸기 전에 승인을 받는다.
+1. API 계약, DB 스키마, 삭제성 쿼리를 바꾸기 전에 승인을 받는다. (Spec 수정은 승인 없이 반영하되 보고한다.)
 2. `git push`, PR 생성, merge는 승인 후에만 한다. `main`에 직접 커밋하지 않는다.
 3. 기존 파일을 덮어쓰기 전에 현재 내용을 읽고 영향을 보고한다.
 4. 검증이 실패하면 원인을 분석해 최대 2회까지만 수정한다. 그래도 실패하거나 요구사항이 모호하면 멈추고 보고한다.

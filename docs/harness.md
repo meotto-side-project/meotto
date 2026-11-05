@@ -6,7 +6,7 @@ Meotto에서 Claude Code로 기능을 개발하는 방법입니다. Spec(명세)
 
 ## 1. 핵심 원칙
 
-- **Spec이 기준입니다.** `docs/specs/*.md`는 사람만 수정합니다. AI는 모호한 점을 질문으로 돌려줄 뿐 임의로 정하지 않습니다.
+- **Spec이 기준입니다.** `docs/specs/*.md`가 무엇을 만들지 정합니다. 사람이 답한 내용과 구현 중 달라진 결정은 AI가 Spec에 직접 반영하고 보고합니다(PR diff에서 검토). 사람이 정해야 할 모호한 점은 AI가 임의로 정하지 않고 질문합니다.
 - **중요한 단계는 `/명령`으로 직접 실행합니다.** AI가 알아서 이어서 진행하지 않습니다.
 - **"완료"는 실행 결과로만 말합니다.** 돌리지 않았거나 도구가 없어서 못 돌린 검증은 "미검증"으로 보고됩니다.
 - **push, PR 생성, DB 스키마·API 계약 변경은 항상 승인받습니다.**
@@ -26,7 +26,7 @@ Spec → Plan → Tasks → Linear → 구현 → 검증 → PR → 측정
 
 | 단계 | 명령 | AI가 하는 일 | 사람이 하는 일 |
 |---|---|---|---|
-| 1 | `/plan-feature <spec 파일명>` | `spec-analyst`로 모호한 점·누락·선행 기능을 질문으로 정리 | 질문에 답하고 필요하면 **Spec을 직접 수정** |
+| 1 | `/plan-feature <spec 파일명>` | `spec-analyst`로 모호한 점·누락·선행 기능을 질문으로 정리 | 질문에 답함 (답한 내용은 AI가 Spec에 반영) |
 | 2 | (같은 명령) | `docs/plans/<feature>.md` 작성: 기술 설계, API 계약 표, Tasks | **Plan과 API 계약을 읽고 승인**(`상태: approved`로 변경) |
 | 3 | `/sync-linear-issues <plan>` | Tasks를 Linear 이슈·서브이슈로 만들 목록을 보여 줌 | 목록을 확인하고 승인 (승인 전에는 Linear를 바꾸지 않음) |
 | 4 | `/implement-feature <Task ID 또는 MEO-번호>` | Task 영역에 따라 `frontend-codegen`/`backend-codegen` 호출, 검증 명령 실행 | 계약·DB 변경이 필요하면 승인 |
@@ -60,7 +60,7 @@ Spec → Plan → Tasks → Linear → 구현 → 검증 → PR → 측정
 
 ## 5. 사람이 반드시 승인하는 것
 
-- Spec 수정, API 계약 변경
+- API 계약 변경
 - DB 스키마 변경(Entity 컬럼·테이블), 삭제성 쿼리
 - 커밋 계획, `git push`, PR 생성, 머지 (`settings.json`이 push·PR 생성을 확인 프롬프트로 막아 둡니다)
 - Linear 이슈 생성
