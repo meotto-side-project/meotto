@@ -56,6 +56,9 @@ argument-hint: "[범위: 파일/디렉터리/브랜치 기준, 기본은 현재 
 
 변경 경로가 `apps/web`이면 웹, `apps/mobile`이면 모바일 항목을 추가로 본다.
 
+### 공통 추가 점검
+- ❌ 코드가 하는 일을 반복하는 주석, 주석 처리된 코드 (이유를 설명하는 주석은 허용)
+
 ### 웹 추가 점검
 - ❌ 공유 콘텐츠 페이지에 `generateMetadata`(title, description, openGraph, twitter, canonical)가 없다
 - ❌ 공유 페이지가 클라이언트에서만 데이터를 불러와 렌더링한다 (서버 렌더링 필요)
