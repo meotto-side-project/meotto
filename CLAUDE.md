@@ -23,7 +23,7 @@
 ## SDD 워크플로
 
 ```text
-Spec → Plan → Tasks → Linear → Implementation → Verification → PR
+Spec → Plan → Tasks → Linear → Implementation → Test → Verification → PR → Metrics
 ```
 
 | 단계 | 명령 | 수행 | 사람 승인 |
@@ -32,9 +32,10 @@ Spec → Plan → Tasks → Linear → Implementation → Verification → PR
 | 2. 설계 | `/plan-feature` | `docs/plans/<feature>.md` 생성 (기술 설계, API 계약, Tasks) | Plan과 API 계약 승인 |
 | 3. Linear | `/sync-linear-issues` | Tasks를 이슈·서브이슈와 연결 | 생성 목록 확인 |
 | 4. 구현 | `/implement-feature` | `frontend-codegen`, `backend-codegen` 조율 | 계약·DB 변경 시 |
-| 5. 검증 | `/verify-feature` | `spec-verifier`가 AC별 증거 수집 | - |
-| 6. PR | `/git-commit` → `/create-pr` | 커밋, push, PR | 커밋·push·PR 생성 각각 |
-| 7. 측정 | `/log-metrics` | 시간, 수정량, AC 충족, 유지보수 비용을 `docs/metrics/`에 기록 (수동 PR도 같은 방식) | 기록 추가 시 |
+| 5. 테스트 | `/implement-feature` 안의 테스트 단계, FE는 `/create-test` `/create-e2e` | AC마다 테스트를 작성하고 실행 (BE `./gradlew test`, FE는 설치된 도구만) | 도구 설치 시 |
+| 6. 검증 | `/verify-feature` | `spec-verifier`가 AC별 증거 수집 (AC ↔ 테스트 대응 포함) | - |
+| 7. PR | `/git-commit` → `/create-pr` | 커밋, push, PR | 커밋·push·PR 생성 각각 |
+| 8. 측정 | `/log-metrics` | 시간, 수정량, AC 충족, 유지보수 비용을 `docs/metrics/`에 기록 (수동 PR도 같은 방식) | 기록 추가 시 |
 
 단계 사이에는 사람이 확인한다. 위 명령은 모두 `/명령`으로 직접 실행한다 (자동 호출에 의존하지 않는다).
 

@@ -44,6 +44,7 @@ argument-hint: "[범위: 파일/디렉터리/브랜치 기준, 기본은 현재 
 ### 품질
 - [ ] **주석 없음** (인라인, 블록, Javadoc)
 - [ ] 미사용 import 없음
+- [ ] AC에 대응하는 서비스 테스트가 있다
 - [ ] 읽기 메서드에 `@Transactional(readOnly = true)`
 - [ ] 비-200 응답에 `@ResponseStatus`
 - [ ] 도메인 에러는 `BusinessException(ErrorCode)`, Controller에 ad-hoc try/catch 없음
@@ -58,6 +59,7 @@ argument-hint: "[범위: 파일/디렉터리/브랜치 기준, 기본은 현재 
 
 ### 공통 추가 점검
 - ❌ 코드가 하는 일을 반복하는 주석, 주석 처리된 코드 (이유를 설명하는 주석은 허용)
+- ❌ 변경한 동작에 대응하는 테스트 없음 (도구 미설치면 "미검증"으로 표기)
 
 ### 웹 추가 점검
 - ❌ 공유 콘텐츠 페이지에 `generateMetadata`(title, description, openGraph, twitter, canonical)가 없다

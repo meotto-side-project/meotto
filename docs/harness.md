@@ -21,7 +21,7 @@ Meotto에서 Claude Code로 기능을 개발하는 방법입니다. Spec(명세)
 ## 3. 기능 하나를 만드는 흐름
 
 ```text
-Spec → Plan → Tasks → Linear → 구현 → 검증 → PR → 측정
+Spec → Plan → Tasks → Linear → 구현 → 테스트 → 검증 → PR → 측정
 ```
 
 | 단계 | 명령 | AI가 하는 일 | 사람이 하는 일 |
@@ -30,9 +30,10 @@ Spec → Plan → Tasks → Linear → 구현 → 검증 → PR → 측정
 | 2 | (같은 명령) | `docs/plans/<feature>.md` 작성: 기술 설계, API 계약 표, Tasks | **Plan과 API 계약을 읽고 승인**(`상태: approved`로 변경) |
 | 3 | `/sync-linear-issues <plan>` | Tasks를 Linear 이슈·서브이슈로 만들 목록을 보여 줌 | 목록을 확인하고 승인 (승인 전에는 Linear를 바꾸지 않음) |
 | 4 | `/implement-feature <Task ID 또는 MEO-번호>` | Task 영역에 따라 `frontend-codegen`/`backend-codegen` 호출, 검증 명령 실행 | 계약·DB 변경이 필요하면 승인 |
-| 5 | `/verify-feature <feature>` | `spec-verifier`가 AC별 증거를 모아 충족/미충족/미검증 판정 | 결과 확인, 수동으로 봐야 할 항목 확인 |
-| 6 | `/git-commit` → `/create-pr` | 커밋 분할 계획, PR 본문 작성 | 커밋 계획, push, PR 생성을 **각각 승인** |
-| 7 | `/log-metrics <PR> <manual\|harness>` | 시간·수정량 등을 모아 `docs/metrics/`에 기록 | 작업 시간 등 자가 입력 |
+| 5 | `/implement-feature`의 테스트 단계, FE는 `/create-test` `/create-e2e` | AC마다 테스트를 작성하고 실행. 도구가 없는 테스트는 만들지 않고 "미검증"으로 남김 | 테스트 도구 설치 승인 |
+| 6 | `/verify-feature <feature>` | `spec-verifier`가 AC별 증거(테스트 포함)를 모아 충족/미충족/미검증 판정 | 결과 확인, 수동으로 봐야 할 항목 확인 |
+| 7 | `/git-commit` → `/create-pr` | 커밋 분할 계획, PR 본문 작성 | 커밋 계획, push, PR 생성을 **각각 승인** |
+| 8 | `/log-metrics <PR> <manual\|harness>` | 시간·수정량 등을 모아 `docs/metrics/`에 기록 | 작업 시간 등 자가 입력 |
 
 ### 선행 기능이 있을 때
 
