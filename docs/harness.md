@@ -79,7 +79,7 @@ AI는 `main`에 커밋·push하지 못합니다(훅이 차단). 검증이 실패
 
 - **시범 전입니다.** 위 흐름은 설계가 끝났고 실제 기능에 적용해 본 적은 아직 없습니다.
 - **프론트엔드 테스트 도구가 설치되어 있지 않습니다.** Storybook+Vitest(컴포넌트), Playwright(E2E)를 쓰기로 했지만 미설치라, 해당 검증은 "미검증"으로 보고됩니다. `/create-test`, `/create-e2e`는 설치 여부를 먼저 확인하고 없으면 멈춥니다.
-- **모바일(Expo) 규칙은 팀에 RN 경험이 없어서 가장 단순한 기본값으로 정했습니다**(`.claude/rules/frontend-mobile.md`). 써 보며 문제가 있으면 그 파일을 고칩니다. 웹은 공유 콘텐츠(SEO·소셜 미리보기) 페이지, 모바일은 회원 흐름의 네이티브 UI를 맡고, Plan Task의 영역은 `FE-web`/`FE-mobile`/`BE`로 나눕니다. `/create-component` 등은 첫 인자로 `web` 또는 `mobile`을 받습니다.
+- **모바일(Expo) 규칙은 팀에 RN 경험이 없어서 가장 단순한 기본값으로 정했습니다**(`.claude/rules/frontend-mobile.md`). 써 보며 문제가 있으면 그 파일을 고칩니다. 이 프로젝트는 웹뷰 기반이라 화면은 웹(`apps/web`)에 만들고, 모바일(`apps/mobile`)은 웹을 띄우는 껍데기 + 푸시 알림 같이 꼭 필요한 네이티브 기능만 맡습니다. 공유 링크 페이지는 SEO·소셜 미리보기에 맞춥니다. Plan Task의 영역은 `FE-web`/`FE-mobile`/`BE`로 나눕니다. `/create-component` 등은 첫 인자로 `web` 또는 `mobile`을 받습니다.
 - 백엔드 도메인이 아직 없어서 `backend-codegen`의 패턴이 실제 코드로 검증된 적은 없습니다.
 
 ## 8. 문제 해결

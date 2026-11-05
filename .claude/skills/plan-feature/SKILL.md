@@ -103,7 +103,7 @@ Agent 도구로 `spec-analyst`를 호출한다. Agent는 대화를 볼 수 없�
 ````
 
 작성 규칙:
-- Task는 한 번에 검증 가능한 크기로 쪼갠다. 영역은 `FE-web`, `FE-mobile`, `BE` 중 하나로 쓰고 섞지 않는다. 앱은 회원 흐름의 네이티브 UI, 웹은 공유 콘텐츠(SEO·소셜 미리보기) 페이지를 맡는다 (`.claude/rules/frontend.md`). 두 앱이 같은 API를 쓰면 공유 스키마 패키지(`frontend/packages/shared`) 생성을 별도 Task로 둔다.
+- Task는 한 번에 검증 가능한 크기로 쪼갠다. 영역은 `FE-web`, `FE-mobile`, `BE` 중 하나로 쓰고 섞지 않는다. 웹뷰 기반이라 화면은 기본적으로 웹(`FE-web`)에 두고, 푸시 알림처럼 네이티브가 꼭 필요한 것만 `FE-mobile`로 둔다 (`.claude/rules/frontend.md`). 웹↔네이티브 브리지가 필요하면 메시지 계약 표를 Plan에 넣는다. 두 앱이 같은 API를 쓰면 공유 스키마 패키지(`frontend/packages/shared`) 생성을 별도 Task로 둔다.
 - 다른 Plan의 Task에 의존하면 `선행` 열에 그 Task ID를 그대로 쓴다 (예: `T-F03-02`). 가정으로 진행하는 경우 "가정 재검증" Task를 마지막에 추가한다.
 - 모든 AC는 최소 한 Task에 연결된다. 연결되지 않은 AC가 있으면 표 아래에 나열한다.
 - Task ID는 `T-{F-ID 숫자}-{nn}`이며 한 번 부여하면 바꾸지 않는다.

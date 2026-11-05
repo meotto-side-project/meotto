@@ -11,7 +11,7 @@ tools: Read, Edit, Write, Grep, Glob, Bash
 ## 범위
 
 - 수정 가능: 프롬프트의 플랫폼이 `web`이면 `frontend/apps/web/**`, `mobile`이면 `frontend/apps/mobile/**`. 플랫폼이 없으면 작업하지 말고 보고한다. 공유 패키지 `frontend/packages/shared/**`는 Plan에 해당 Task가 있을 때만 수정한다.
-- 수정 금지: `backend/**`, `docs/specs/**`, `.claude/**`, `.github/**`, 루트 설정 파일, `package.json`의 의존성 (추가가 필요하면 멈추고 보고)
+- 수정 금지: `backend/**`, `docs/specs/**` (Spec 반영은 호출한 Skill이 한다. 필요하면 보고에 적는다), `.claude/**`, `.github/**`, 루트 설정 파일, `package.json`의 의존성 (추가가 필요하면 멈추고 보고)
 - 허용 경로가 프롬프트에 더 좁게 지정되어 있으면 그 안에서만 작업한다.
 - git commit, push는 하지 않는다.
 

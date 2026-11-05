@@ -94,6 +94,8 @@ Storybook 버전에 맞는 import 경로는 설치된 패키지를 보고 맞춘
 
 ## 모바일 (`frontend/apps/mobile/`)
 
+네이티브 화면이 꼭 필요할 때만 쓴다. 웹뷰로 해결되는 화면은 웹에 만든다 (`.claude/rules/frontend.md`의 플랫폼 역할).
+
 `.claude/rules/frontend-mobile.md`를 먼저 읽는다. 스타일 토큰(`src/theme/`)이 아직 없으면 `docs/specs/design-system.md`를 보고 필요한 최소 토큰을 만들지 사용자에게 묻는다. Storybook은 쓰지 않는다.
 
 - 위치: 범용은 `src/components/ui/[Name]/[Name].tsx`, 기능 전용은 `src/components/features/[feature]/[Name]/[Name].tsx`. 라우트(`src/app/`) 안에는 컴포넌트를 두지 않는다.
