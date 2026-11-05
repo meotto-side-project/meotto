@@ -1,0 +1,43 @@
+{
+  "permissions": {
+    "ask": [
+      "Bash(git push*)",
+      "Bash(git merge*)",
+      "Bash(gh pr create*)",
+      "Bash(gh pr merge*)",
+      "Bash(git worktree remove*)"
+    ],
+    "deny": [
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(git reset --hard*)",
+      "Bash(git commit*--no-verify*)",
+      "Bash(git add -A*)",
+      "Bash(git add .)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/guard-main.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/check-style.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
