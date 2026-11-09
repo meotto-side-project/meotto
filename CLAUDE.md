@@ -28,9 +28,9 @@ Spec → Plan → Tasks → Linear → Implementation → Test → Verification 
 
 | 단계 | 명령 | 수행 | 사람 승인 |
 |---|---|---|---|
-| 1. 명세 분석 | `/plan-feature` (내부에서 `spec-analyst`) | 모호함, 누락, 의존성을 질문으로 정리 | 질문 답변은 사람 (Spec 수정은 AI가 반영) |
+| 1. 명세 분석 | `/plan-all plan`(전체) 또는 `/plan-feature`(하나), 내부에서 `spec-analyst` | 모호함, 누락, 의존성을 질문으로 정리 | 질문 답변은 사람 (Spec 수정은 AI가 반영) |
 | 2. 설계 | `/plan-feature` | `docs/plans/<feature>.md` 생성 (기술 설계, API 계약, Tasks) | Plan과 API 계약 승인 |
-| 3. Linear | `/sync-linear-issues` | Tasks를 이슈·서브이슈와 연결 | 생성 목록 확인 |
+| 3. Linear | `/plan-all linear`(전체) 또는 `/sync-linear-issues`(하나) | Tasks를 이슈·서브이슈와 연결 | 생성 목록 확인 |
 | 4. 구현 | `/implement-feature` | `frontend-codegen`, `backend-codegen` 조율 | 계약·DB 변경 시 |
 | 5. 테스트 | `/implement-feature` 안의 테스트 단계, FE는 `/create-test` `/create-e2e` | AC마다 테스트를 작성하고 실행 (BE `./gradlew test`, FE는 설치된 도구만) | 도구 설치 시 |
 | 6. 검증 | `/verify-feature` | `spec-verifier`가 AC별 증거 수집 (AC ↔ 테스트 대응 포함) | - |
