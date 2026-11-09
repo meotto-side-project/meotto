@@ -31,6 +31,13 @@ paths:
 - 스타일은 Tailwind 4. 토큰은 `@theme`에 정의한다. `ComponentProps<'el'>` 확장, default export, 조건부 클래스는 `cn()`.
 - 무거운 컴포넌트는 `next/dynamic`으로 동적 import.
 
+## API 목 (MSW)
+
+- 위치: `src/mocks/handlers/[feature].ts`(기능별 핸들러), `src/mocks/browser.ts`(클라이언트, 워커), `src/mocks/server.ts`(서버 컴포넌트·테스트용 node 서버), 워커 파일은 `public/`.
+- 활성화: `NEXT_PUBLIC_API_MOCKING=enabled`일 때만. 클라이언트는 앱 진입 시, 서버 컴포넌트의 fetch는 `instrumentation.ts`에서 `server.listen()`으로 켠다.
+- 서버 컴포넌트가 가져오는 데이터(공유 콘텐츠 페이지)도 같은 핸들러로 목 처리한다. 도메인은 `NEXT_PUBLIC_API_URL` 기준이다.
+- 핸들러 작성 절차는 `create-api-hook`의 "목 핸들러" 단계를 따른다. 공통 규칙은 `frontend.md`.
+
 ## 테스트와 검증
 
 - 컴포넌트: Storybook + Vitest(스토리 `play` 함수). 스킬: `create-test`.

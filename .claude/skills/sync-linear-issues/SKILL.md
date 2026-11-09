@@ -2,7 +2,7 @@
 name: sync-linear-issues
 description: docs/plans/<feature>.md의 Tasks를 Linear(meotto 워크스페이스, MEO 팀) 이슈와 서브이슈로 동기화한다. 중복 생성을 막고 생성 전에 목록을 확인받는다. Linear MCP가 연결되어 있어야 한다.
 disable-model-invocation: true
-argument-hint: "<Plan 파일명> 예: home"
+argument-hint: "<Plan 파일명 또는 all> 예: home (all: 승인된 모든 Plan을 한 번에)"
 ---
 
 # Plan Tasks → Linear 동기화
@@ -52,9 +52,9 @@ Linear 워크스페이스 `meotto`, 팀 키 `MEO`.
 - 이 팀의 기존 관례를 따른다: 기능마다 **영역별 상위 이슈**(FE 1개, BE 1개)를 두고, 같은 기능명을 제목으로 쓴다. Task는 해당 영역 상위 이슈의 서브이슈(`parentId`)로 만든다. 상위 이슈가 이미 있으면 재사용한다.
 - 라벨: 영역 라벨(`FE` 또는 `BE`)과 `Feature`를 붙인다. 웹/모바일을 구분하는 라벨은 없으므로 둘 다 `FE`로 두고 본문에 플랫폼(`web`/`mobile`)을 적는다 (라벨을 새로 만들지 않는다) (수정 작업이면 `Bug`/`Improvement`). 제목에 `[FE]` 같은 접두어는 쓰지 않는다. 라벨은 `labels`로 지정한다.
 - 본문은 사람이 읽는 내용(Task 설명, 대응 F-ID/AC, 검증 방법)을 앞에 쓰고, Plan과 Spec 경로, 마커 같은 에이전트용 세부는 끝의 접이식 `+++ Agent notes` 섹션에 둔다.
-- Task의 "선행" 열은 `blockedBy`로 연결한다 (append-only). FE Task가 BE Task에 의존하는 경우를 우선 확인한다.
+- Task의 "선행" 열은 `blockedBy`로 연결한다 (append-only). FE Task는 BE Task를 선행으로 두지 않는 것이 규칙이므로(`실서버 연동 확인` Task만 BE Task에 의존) 그런 연결이 있으면 Plan 오류로 보고한다.
 - 선행이 **다른 Plan의 Task**면 그 Plan 파일의 Linear 열에서 이슈 ID를 찾아 연결한다. ID가 없으면 해당 Plan이 아직 동기화되지 않은 것이므로 그 관계는 건너뛰고 "선행 Plan 동기화 필요"로 보고한다.
-- 상태, 담당자, 우선순위는 지정하지 않는다 (팀 기본값 사용).
+- 상태, 우선순위는 지정하지 않는다 (팀 기본값 사용). 담당자는 Plan의 `담당` 열에 사람이 적어 둔 경우에만 승인 표에 포함해 지정하고, `미정`이면 비워 둔다.
 
 ## 4. 실행
 

@@ -79,6 +79,23 @@ export const useStampListQuery = () =>
 
 4. `queries/useXxxMutation.ts` - `useMutation`. 변경 후 관련 쿼리는 `queryClient.invalidateQueries({ queryKey })`로 무효화한다.
 
+5. `src/mocks/handlers/[feature].ts` - **MSW 핸들러** (웹). API가 아직 없거나 Plan의 `실서버 연동 확인` 전에는 이것으로 연결까지 동작시킨다.
+
+```ts
+import { http, HttpResponse } from "msw";
+
+import { STAMP_ENDPOINTS } from "@/src/components/features/stamp/constants/url";
+
+export const stampHandlers = [
+  http.get(`${process.env.NEXT_PUBLIC_API_URL}${STAMP_ENDPOINTS.list}`, () =>
+    HttpResponse.json([{ id: 1, createdAt: "2025-01-01T00:00:00Z" }]),
+  ),
+];
+```
+
+- 응답은 계약 표의 Response 필드와 같게 쓰고, 계약에 있는 에러(`{ name, message }`)도 상태코드와 함께 핸들러로 만든다 (필요하면 테스트에서 `server.use`로 덮어씀).
+- 핸들러를 `src/mocks/browser.ts`, `server.ts`의 목록에 등록한다. `msw`가 설치되어 있지 않으면 설치하지 말고 멈춰 사용자에게 승인을 요청한다.
+
 ## 규칙
 
 - 쿼리 키와 엔드포인트를 하드코딩하지 않는다 (`constants/` 사용).

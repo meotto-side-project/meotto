@@ -29,6 +29,16 @@ paths:
 - 포맷은 Prettier(`frontend/.prettierrc`): 세미콜론, 큰따옴표, trailing comma, 80자. import 정렬은 `simple-import-sort` 린트 규칙을 따른다.
 - 데이터는 TanStack Query + Zod 응답 검증. 쿼리 키와 엔드포인트는 `constants/`에 두고 하드코딩하지 않는다.
 
+## API가 아직 없을 때 (MSW)
+
+FE는 BE 구현을 기다리지 않는다. API 계약 표가 승인되면 시작하고, API가 없으면 MSW 핸들러로 목 서버를 만들어 화면과 API 연결까지 구현한다.
+
+- 핸들러는 Plan의 API 계약 표(Path, Request, Response, 에러 name)를 그대로 따른다. 성공 응답과 계약에 있는 에러 응답을 모두 만든다. 계약에 없는 필드를 지어내지 않는다.
+- 목은 환경 변수로만 켠다 (`NEXT_PUBLIC_API_MOCKING=enabled`). 꺼져 있으면 실제 서버로 간다. 앱 코드에서 목 여부를 분기하지 않는다.
+- 같은 핸들러를 컴포넌트 테스트와 E2E에서도 쓴다.
+- BE가 완료되면 `실서버 연동 확인` Task에서 목을 끄고 확인한다. 목으로만 확인한 AC는 "실서버 연동 미검증"으로 보고한다.
+- `msw` 설치는 사용자 승인 사항이다. 구성은 웹 앱(`apps/web`)에 한다. 웹뷰 기반이라 모바일은 같은 웹을 쓰므로 별도 목이 필요 없다.
+
 ## 공유 코드
 
 - 두 앱이 같은 API를 쓰면 응답 Zod 스키마, 엔드포인트 상수, 타입은 `frontend/packages/shared`에 둔다 (`pnpm-workspace.yaml`의 `packages/*`).
