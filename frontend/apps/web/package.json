@@ -27,7 +27,13 @@
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-simple-import-sort": "^14.0.0",
     "eslint-plugin-storybook": "^10.6.3",
+    "msw": "^3.0.4",
     "tailwindcss": "^4",
     "typescript": "~6.0.3"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
   }
 }
