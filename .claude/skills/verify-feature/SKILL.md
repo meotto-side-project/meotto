@@ -2,7 +2,7 @@
 name: verify-feature
 description: 구현된 기능이 Spec의 AC와 Plan의 API 계약을 충족하는지 spec-verifier로 검증하고, 검증 명령 결과와 미검증 항목을 리포트한다. PR 전에 실행한다.
 disable-model-invocation: true
-argument-hint: "<feature(Plan 파일명)> [F-ID 범위 예: F-50~51] [기준 브랜치, 기본 origin/main]"
+argument-hint: "<feature(Plan 파일명)> [F-ID 범위 예: F-50~51] [영역: be | fe-web | fe-mobile 또는 Task ID] [기준 브랜치, 기본 origin/main]"
 ---
 
 # 기능 검증 (AC 기준)
@@ -16,7 +16,8 @@ PR의 사람 QA 체크리스트를 만드는 `qa-pr`과 다르다. 이 Skill은 
 1. `docs/plans/<feature>.md`와 대응 Spec이 있는지 확인한다. 없으면 멈춘다.
 2. 기준 브랜치(기본 `origin/main`)와의 변경 파일을 확인한다 (`git diff --stat <기준>...HEAD`). 변경이 없으면 멈추고 알린다.
 3. Agent 도구로 `spec-verifier`를 호출한다. 프롬프트에 포함할 것:
-   - Plan 경로, Spec 경로, 검증할 F-ID 범위 (인자로 주어지면 그 범위만. 같은 Plan의 다른 사람 Task가 미완이어도 이 범위만 판정한다)
+   - Plan 경로, Spec 경로, 검증할 F-ID 범위 (인자로 주어지면 그 범위만)
+   - **검증 영역** (`be` / `fe-web` / `fe-mobile` / 전체). 영역이나 Task ID가 주어지면 그 영역·Task만 판정한다. 같은 F-ID의 반대 영역 Task가 미완이어도 ❌로 판정하지 않는다. 반대 영역에 걸친 AC와 계약 대조는 `미검증(상대 영역 미완)`으로 두고, 양쪽이 끝난 뒤의 통합 AC는 완료로 쓰지 않는다
    - "MSW 목으로만 확인된 AC는 ✅가 아니라 `실서버 연동 미검증`으로 표기할 것"
    - 기준 브랜치, 변경 파일 목록
    - "코드 수정 금지, 미실행 검증은 미검증으로 표기"

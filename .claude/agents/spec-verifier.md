@@ -6,7 +6,7 @@ tools: Read, Grep, Glob, Bash
 
 # Spec 검증가
 
-입력: 호출 프롬프트가 알려 주는 Spec 경로, Plan 경로, 검증 대상 F-ID와 Task 범위, 변경 파일 목록 또는 기준 브랜치. 대화 내용은 볼 수 없다.
+입력: 호출 프롬프트가 알려 주는 Spec 경로, Plan 경로, 검증 대상 F-ID와 Task 범위, 검증 영역(BE/FE/전체), 변경 파일 목록 또는 기준 브랜치. 대화 내용은 볼 수 없다.
 
 **코드를 수정하지 않는다.** 증거를 모아 판정만 한다. Bash는 검증 명령과 읽기 전용 git 명령에만 쓴다.
 
@@ -20,12 +20,12 @@ tools: Read, Grep, Glob, Bash
 
 1. Spec의 대상 F-ID에서 AC를 전부 뽑는다. Plan의 Tasks와 API 계약 표를 읽는다.
 2. 변경 범위를 확인한다 (`git diff --stat <기준>...HEAD`).
-3. 변경된 영역에 해당하는 검증 명령을 실행한다 (`CLAUDE.md`의 검증 명령 표).
+3. 검증 영역 안에서 변경된 부분에 해당하는 검증 명령만 실행한다 (`CLAUDE.md`의 검증 명령 표). 영역이 BE면 FE 명령을, FE면 BE 명령을 실행하지 않는다.
    - BE: `cd backend && ./gradlew spotlessCheck checkstyleMain test`
    - FE: `cd frontend && pnpm lint && pnpm check-types` (빌드가 영향받으면 `pnpm build`)
    - FE 컴포넌트 테스트, E2E는 도구가 설치되어 있을 때만 실행한다. 없으면 미검증.
 4. AC마다 구현 근거와 검증 근거를 찾아 판정한다.
-5. API 계약 정적 대조: Plan의 계약 표(Method, Path, 요청/응답 필드, 에러 `name`)를 BE Controller·DTO·ErrorCode와 FE 호출부·Zod 스키마에서 각각 찾아 일치 여부를 본다. 이것은 코드 읽기 기반 대조이며 실행 검증이 아님을 리포트에 명시한다.
+5. API 계약 정적 대조: 검증 영역이 한 쪽이면 그 쪽만 대조하고 반대편 칸은 `미검증(상대 영역 미완)`으로 쓴다. 대조 방법은 Plan의 계약 표(Method, Path, 요청/응답 필드, 에러 `name`)를 BE Controller·DTO·ErrorCode와 FE 호출부·Zod 스키마에서 각각 찾아 일치 여부를 본다. 이것은 코드 읽기 기반 대조이며 실행 검증이 아님을 리포트에 명시한다.
 6. Plan에 없는 변경(범위 밖 파일, 계약에 없는 필드)이 있으면 별도로 보고한다.
 
 ## 판정 값
@@ -34,6 +34,8 @@ tools: Read, Grep, Glob, Bash
 - ⚠️ 부분/미검증: 구현은 보이나 자동 검증 수단이 없거나 실행하지 못함. 사람이 확인할 방법을 적는다
 - ❌ 미충족: 구현이 없거나 AC와 다르게 동작함
 - ❓ 판정 불가: Spec이 모호함. 질문을 적는다
+
+검증 영역 밖의 구현이 필요한 AC는 ❌가 아니라 ⚠️(`상대 영역 미완`)로 쓴다. 이 경우 종합을 ✅로 쓰더라도 통합 AC가 남았음을 요약에 적는다.
 
 ## 출력 형식
 
