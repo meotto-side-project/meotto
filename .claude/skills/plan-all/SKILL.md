@@ -32,9 +32,11 @@ argument-hint: "[plan | linear] 비우면 현재 상태를 보고 다음 단계�
    - 선행 Plan이 있으면 그 계약 표를 참조한다 (구현 여부와 무관).
    - 보류 질문에 걸린 F-ID의 Task는 만들되 `선행` 또는 `검증 방법`에 `보류: <질문 요약>`을 적는다. 질문이 해소되기 전에는 구현하지 않는다.
    - 담당은 모두 `미정`으로 둔다.
+   - API 계약 표의 `상태`를 행마다 채운다. 보류 질문에 걸린 행은 `보류: <질문>`, 나머지는 `확정`이다.
+   - `MSW 구성`(`T-{첫 F-ID}-98`)은 저장소에서 한 번만 만든다. 선행 순서상 **FE-web Task가 있는 첫 Plan**에만 넣고, 이후 Plan은 그 Task ID를 FE Task의 `선행`에 적는다.
    - `docs/plans/README.md`를 갱신한다 (Plan, 상태, 선행 Plan, 권장 구현 순서).
 5. 사용자에게 요약을 보여 준다: Plan 수, Task 수(FE/BE/보류), 승인이 필요한 데이터 모델·API, 보류 목록.
-6. 안내한다: "Plan 전체를 PR로 올려 팀이 리뷰하고 API 계약을 승인한 뒤, 각 Plan의 `상태`를 `approved`로 바꾸세요. 그다음 `/plan-all linear`를 실행합니다." 커밋과 PR은 `/git-commit`, `/create-pr`로 따로 한다.
+6. 안내한다: "Plan 전체를 PR로 올려 팀이 리뷰하고 API 계약(`확정` 행)을 승인한 뒤, 각 Plan의 `상태`를 `approved`로 바꾸세요. 그다음 `/plan-all linear`를 실행합니다." 커밋과 PR은 `/git-commit`, `/create-pr`로 따로 한다.
 
 ## 단계 2: linear
 
