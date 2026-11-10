@@ -280,9 +280,11 @@ try (MockedStatic<SecurityUtil> mocked = mockStatic(SecurityUtil.class)) {
 
 ## 프로젝트 규칙
 
-- 커밋 메시지: 제목(첫 줄)은 영어, body는 한글로 작성
+- 커밋, 브랜치, PR 규칙은 저장소 공통 규칙 `.claude/rules/git.md`를 따른다
 
 ### 커밋 컨벤션
+
+아래는 CI가 BE 커밋에 적용하는 검사 기준이다.
 
 **CI(`backend-ci.yml`)가 PR의 모든 커밋 메시지를 검사**합니다 (`.githooks/commit-msg` 로직 재사용).
 이 레포는 프론트엔드가 이미 `core.hooksPath`를 `frontend/.husky`로 점유하고 있어
@@ -296,11 +298,11 @@ git config core.hooksPath backend/.githooks
 
 - **형식**: `type: subject` (scope 없음, 반드시 제외)
 - **type**: `feat|fix|docs|style|refactor|test|chore|revert|merge`
-- **subject**: 영어, 50자 이하, 마침표 금지
-- **body**: 작성 시 한글, 각 줄을 `-`로 시작, 빈 줄로 제목과 구분
+- **subject**: 50자 이하, 마침표 금지, 한글 가능
+- **body**: 작성 시 각 줄을 `-`로 시작, 빈 줄로 제목과 구분
 
 ```
-feat: add stamp issuance logic
+feat: 도장 발급 로직 추가
 
 - 토마토 도장 생성 API 구현
 - Redis 캐시 만료 시간 자정으로 설정
@@ -318,13 +320,17 @@ feat: add stamp issuance logic
 
 | 상황 | 커맨드 |
 |------|--------|
-| 새 기능 구현 | `/meotto-codegen` |
-| 버그 수정 | `/meotto-fix` |
-| 리팩토링 | `/meotto-refactor` |
-| DB 갭 감지 | `/meotto-db-sync` |
-| 보안 감사 | `/meotto-pentest` |
-| 코드 리뷰 | `/meotto-code-reviewer` |
-| 커밋 | `/meotto-git-committer` |
-| 브랜치 커밋·푸시·PR 생성 | `/meotto-branch-merge` |
-| 문서-코드 일치 검사 | `/validate-docs-code` |
-| 프론트 테스트 데이터 시드 | `/meotto-frontend-test-data` |
+| Spec 기반 설계 | `/plan-feature` |
+| 새 기능 구현 | `/implement-feature` (내부에서 `backend-codegen` 호출) |
+| 구현 검증 | `/verify-feature` |
+| 버그 수정 | `/backend-fix` |
+| 리팩토링 | `/refactor` |
+| DB 갭 감지 | `/db-sync` |
+| 보안 감사 | `security-audit` 에이전트 호출 |
+| 코드 리뷰 | `/code-review` |
+| 커밋 | `/git-commit` |
+| 브랜치 생성·커밋·PR | `/branch-merge` → `/create-pr` |
+| 문서-코드 일치 검사 | `/sync-docs` |
+| 프론트 테스트 데이터 시드 | `/seed-test-data` |
+
+전체 워크플로와 승인 단계는 루트 `CLAUDE.md`를 따른다.
