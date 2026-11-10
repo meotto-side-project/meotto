@@ -33,7 +33,7 @@ Spec → Plan → Tasks → Linear → Implementation → Test → Verification 
 | 3. Linear | `/plan-all linear`(전체) 또는 `/sync-linear-issues`(하나) | Tasks를 이슈·서브이슈와 연결 | 생성 목록 확인 |
 | 4. 구현 | `/implement-feature` | `frontend-codegen`, `backend-codegen` 조율 | 계약·DB 변경 시 |
 | 5. 테스트 | `/implement-feature` 안의 테스트 단계, FE는 `/create-test` `/create-e2e` | AC마다 테스트를 작성하고 실행 (BE `./gradlew test`, FE는 설치된 도구만) | 도구 설치 시 |
-| 6. 검증 | `/verify-feature` | `spec-verifier`가 AC별 증거 수집 (AC ↔ 테스트 대응 포함) | - |
+| 6. 검증 | `/verify-feature` | `spec-verifier`가 AC별 증거 수집 (AC ↔ 테스트 대응 포함), PR이 있으면 CI 결과도 확인 | - |
 | 7. PR | `/git-commit` → `/create-pr` | 커밋, push, PR | 커밋·push·PR 생성 각각 |
 | 8. 측정 | `/log-metrics` | 시간, 수정량, AC 충족, 유지보수 비용을 `docs/metrics/`에 기록 (수동 PR도 같은 방식) | 기록 추가 시 |
 
@@ -67,7 +67,7 @@ Spec → Plan → Tasks → Linear → Implementation → Test → Verification 
 2. `git push`, PR 생성, merge는 승인 후에만 한다. `main`에 직접 커밋하지 않는다.
 3. 기존 파일을 덮어쓰기 전에 현재 내용을 읽고 영향을 보고한다.
 4. 검증이 실패하면 원인을 분석해 최대 2회까지만 수정한다. 그래도 실패하거나 요구사항이 모호하면 멈추고 보고한다.
-5. "완료"는 실제 명령 실행 결과로만 판단한다. 실행하지 않은 검증을 통과했다고 쓰지 않는다.
+5. "완료"는 실제 명령 실행 결과로만 판단한다. PR이 있으면 CI 통과도 포함한다. 실행하지 않은 검증을 통과했다고 쓰지 않는다.
 6. Agent는 맡은 영역(`frontend/**` 또는 `backend/**`) 밖의 파일을 수정하지 않는다.
 
 ## 규칙 파일
