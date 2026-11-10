@@ -105,7 +105,7 @@ Plan은 설계 문서이므로 **선행 기능이 구현되어 있을 필요는 
 ## Tasks
 | ID | 제목 | 영역 | F-ID / AC | 수정 경로 | 선행 | 검증 방법 | Linear |
 |---|---|---|---|---|---|---|---|
-| T-F10-01 | ... | BE | F-10 AC2 | backend/.../friend/** | - | gradlew test | |
+| T-F10-01 | ... | BE | F-10 AC2 | backend/.../friend/** | - | cd backend && ./gradlew test | |
 | T-F10-02 | ... | FE-web | F-10 AC2 | apps/web/.../features/friend/** | 계약 C-1 확정 | 수동 확인: MSW 목 | |
 ````
 

@@ -24,7 +24,7 @@ argument-hint: "[도메인명, 없으면 전체]"
 
 ## Step 3: 갭 분석
 
-- `@Column(nullable = false)`인데 기본값이 없는 컬럼 (NPE 위험)
+- `@Column(nullable = false)`인데 기본값이 없는 컬럼 (저장 시 제약 위반 가능). 생성자·팩토리에서 값을 항상 넣는지 확인하고, Java null 문제와 DB 제약 위반을 구분해서 보고한다
 - `unique` 선언 여부와 실제 필요성
 - FK 필드(`Long xxxId`)에 대응하는 Entity 존재 여부
 - `deletedAt` 없는 Entity에서 소프트 딜리트 사용 여부

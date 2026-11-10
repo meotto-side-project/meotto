@@ -15,7 +15,7 @@ argument-hint: "[Plan 파일명 또는 Linear ID, 선택]"
 
 1. `git branch --show-current`. `main`이면 중단.
 2. `git status`. 커밋되지 않은 변경이 있으면 알리고 `/git-commit`을 먼저 하도록 안내한다.
-3. `git log main..HEAD --oneline`으로 PR에 들어갈 커밋을 본다. 없으면 중단.
+3. `git fetch origin main` 후 `git log origin/main..HEAD --oneline`으로 PR에 들어갈 커밋을 본다 (로컬 `main`이 아니라 원격 기준). 없으면 중단.
 4. 브랜치명과 커밋에서 Linear ID(`MEO-xx`), F-ID, Task ID를 찾는다. 찾지 못하면 인자나 사용자에게 묻는다. 끝내 없으면 "없음"으로 쓴다.
 5. 문서 점검: 이 브랜치에서 구조나 설정이 바뀌었는데 `CLAUDE.md`, `docs/`가 낡았을 수 있으면 `sync-docs` 실행을 권한다 (자동 실행하지 않는다).
 

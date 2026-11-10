@@ -88,7 +88,7 @@ AI는 `main`에 커밋·push하지 못합니다(훅이 차단). 검증이 실패
 - 브랜치: `{type}/MEO-{번호}-{설명}` (type: feature, fix, refactor, docs, chore, test)
 - 커밋: `type: 요약`, 제목 50자 이내·마침표 없음, 본문을 쓰면 **모든 줄을 `-`로 시작**. 백엔드 커밋에는 scope를 쓰지 않습니다. 서명 트레일러(`Co-Authored-By`)는 넣지 않습니다.
 - PR 제목: `[Feat] 요약` 형식. 본문에 관련 Spec(F-ID), Linear 이슈, 검증 결과, 미해결 사항을 적습니다.
-- Linear 이슈 ID가 브랜치와 PR에 들어가면 GitHub–Linear 연동이 이슈를 연결합니다. 하네스는 Linear 상태를 직접 바꾸지 않습니다.
+- Linear 이슈 ID가 브랜치와 PR에 들어가면, GitHub–Linear 연동이 켜져 있을 때 이슈가 연결됩니다. 연동 설정은 하네스가 확인할 수 없으니 PR을 만든 뒤 이슈에 연결됐는지 직접 확인하세요. 하네스는 Linear 상태를 직접 바꾸지 않습니다.
 
 ## 7. 현재 한계
 

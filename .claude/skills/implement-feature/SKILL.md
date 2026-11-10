@@ -98,6 +98,6 @@ API가 걸린 Task는 Agent 보고의 `계약 변경 필요`와 실제 코드를
 /verify-feature <feature>  →  /git-commit  →  /create-pr
 ```
 
-완료 판단은 명령 실행 결과로만 한다. Linear 상태는 바꾸지 않는다 (GitHub–Linear 연동에 맡긴다).
+완료 판단은 명령 실행 결과와 함께 계약 일치, AC 대응 근거(실제 코드와 테스트)를 확인한 뒤에 한다. 명령이 통과해도 이 근거가 없으면 완료로 쓰지 않는다. Linear 상태는 바꾸지 않는다 (GitHub–Linear 연동에 맡긴다).
 
 사람이 코드를 고치기 전에 `/git-commit`으로 먼저 커밋하면 그 커밋이 "AI 초안"으로 기록된다 (`git-commit`이 body에 표시). 수정량 측정을 위해 이 순서를 안내한다.

@@ -43,4 +43,4 @@ paths:
 - 컴포넌트: Storybook + Vitest(스토리 `play` 함수). 스킬: `create-test`.
 - E2E: Playwright, 핵심 여정만. 스킬: `create-e2e`.
 - 두 도구는 현재 미설치다. 설치는 별도 승인 작업이다.
-- **SEO 검증 (설치 없이 가능)**: `cd frontend/apps/web && pnpm build && pnpm start` 후 `curl -s <URL>`의 HTML에 `<title>`, `og:title`, `og:description`, `og:image`, `twitter:card`, `canonical`, `robots`가 들어 있는지 확인한다. 비공개·무효 케이스에서 개인 정보가 응답에 없는지도 확인한다.
+- **SEO 검증 (설치 없이 가능)**: `cd frontend/apps/web && pnpm build`, `pnpm start &`로 서버를 백그라운드에 띄우고 준비될 때까지 기다린 뒤(`trap`으로 종료 보장) `curl -s <URL>`의 HTML에 `<title>`, `og:title`, `og:description`, `og:image`, `twitter:card`, `canonical`, `robots`가 들어 있는지 확인한다. 비공개·무효 케이스에서 개인 정보가 응답에 없는지도 확인한다.

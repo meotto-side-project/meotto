@@ -1,6 +1,7 @@
 ---
 name: sync-docs
 description: CLAUDE.md, README, .claude 규칙/스킬/에이전트 목록, docs/specs 인덱스가 실제 코드·설정과 일치하는지 비교해 불일치를 찾고, 확인 후 한쪽으로 통일한다.
+disable-model-invocation: true
 argument-hint: "[대상 문서, 없으면 아래 전체]"
 ---
 

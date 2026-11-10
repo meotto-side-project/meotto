@@ -19,7 +19,7 @@ argument-hint: "[커밋 범위 힌트, 선택]"
 ## 1. 사전 확인
 
 1. `git branch --show-current`. **`main`이면 중단**하고 `.claude/rules/git.md`의 브랜치명으로 브랜치를 먼저 만들도록 안내한다.
-2. `git status`, `git diff`(스테이징 안 된 것 포함)로 변경 전체를 본다.
+2. `git status`, `git diff HEAD`(스테이징 포함)로 변경 전체를 보고, 추적되지 않은 파일(`??`)은 내용을 직접 읽어 확인한다.
 3. 변경이 없으면 알리고 끝낸다.
 
 ## 2. 커밋 분할 계획

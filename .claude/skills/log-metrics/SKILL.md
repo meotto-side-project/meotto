@@ -20,7 +20,7 @@ argument-hint: "<PR 번호 또는 Linear ID> <manual|harness>"
 ## 1. 대상 식별
 
 1. 두 번째 인자가 `manual` 또는 `harness`인지 확인한다. 없으면 묻는다.
-2. PR 번호면 `gh pr view <n> --json number,title,url,headRefName,baseRefName,body,createdAt,mergedAt,additions,deletions,commits,reviews`로 정보를 얻는다. Linear ID(`MEO-xx`)면 PR 본문이나 브랜치명에서 찾거나 `gh pr list --search <ID>`로 찾는다. 찾지 못하면 PR 없이 Linear 정보만 기록하고 비고에 적는다.
+2. PR 번호면 `gh pr view <n> --json number,title,url,headRefName,baseRefName,body,createdAt,mergedAt,additions,deletions,commits,reviews`로 정보를 얻는다. Linear ID(`MEO-xx`)면 PR 본문이나 브랜치명에서 찾거나 `gh pr list --state all --search <ID>`로 찾는다 (머지된 PR 포함). 찾지 못하면 PR 없이 Linear 정보만 기록하고 비고에 적는다.
 3. 이미 같은 PR의 행이 `docs/metrics/sdd-pilot.md`에 있으면 새 행을 만들지 않고 **보강 모드**로 진행한다 (변경할 칸을 보여 주고 승인받는다). 머지 후 일정 기간이 지나 누락 AC 칸을 채울 때 쓴다.
 
 ## 2. 자동 수집
@@ -36,16 +36,16 @@ argument-hint: "<PR 번호 또는 Linear ID> <manual|harness>"
 머지된 PR의 커밋이 로컬에 없으면 `git fetch origin pull/<n>/head`로 가져온다.
 
 1. **리뷰 후 수정률** (수동과 하네스 공통 비교값): 첫 리뷰 제출 시각 이후 커밋들의 추가+삭제 줄 합 ÷ PR 전체 추가+삭제 줄. 리뷰가 없으면 `-`.
-2. **초안 대비 수정률** (하네스만): `git log <base>..<head> --grep='AI 초안' --format=%H`로 AI 초안 커밋을 찾는다. 초안 커밋들의 추가 줄 합을 분모로 하고, 마지막 초안 커밋 이후 같은 파일들의 변경 줄(`git diff --numstat <마지막 초안 SHA> <head> -- <초안 파일들>`)을 분자로 한다. 초안 커밋이 없으면 `-`로 두고 비고에 "초안 커밋 식별 불가"라고 적는다.
+2. **초안 대비 수정률** (하네스만): PR의 커밋 목록(`gh pr view <n> --json commits`)에서 메시지에 `AI 초안`이 있는 커밋을 찾는다 (병합 후에는 `<base>..<head>`가 비므로 기준 브랜치와 비교하지 않는다). 초안 커밋들의 추가 줄 합을 분모로 하고, 마지막 초안 커밋 이후 같은 파일들의 변경 줄(`git diff --numstat <마지막 초안 SHA> <head> -- <초안 파일들>`)을 분자로 한다. 초안 커밋이 없으면 `-`로 두고 비고에 "초안 커밋 식별 불가"라고 적는다.
 
 ### 스킬 유지보수 비용
-Linear 시작 시각(없으면 PR 생성 시각 7일 전)부터 머지 시각까지 `git log --since=<시작> --until=<끝> --numstat -- .claude CLAUDE.md`의 커밋 수와 변경 줄 수. 이 기간의 변경이 해당 Task를 위한 것인지 사용자에게 확인한다 (무관한 변경이 섞였으면 제외하는 항목을 묻는다).
+Linear 시작 시각(없으면 PR 생성 시각 7일 전)부터 머지 시각까지 `git fetch origin <base>` 후 `git log origin/<base> --since=<시작> --until=<끝> --numstat -- .claude CLAUDE.md`(현재 브랜치가 아니라 최신 기준 브랜치)의 커밋 수와 변경 줄 수. 이 기간의 변경이 해당 Task를 위한 것인지 사용자에게 확인한다 (무관한 변경이 섞였으면 제외하는 항목을 묻는다).
 
 ### AC 충족 (선택)
-`harness`든 `manual`이든 같은 기준으로 채점한다. 해당 PR의 브랜치가 **이미 체크아웃된 상태**일 때만, 사용자 동의를 받고 `spec-verifier`를 Agent로 호출한다 (Plan 경로, Spec 경로, F-ID, 기준 브랜치 전달). 체크아웃되어 있지 않으면 채점하지 않고 `-`로 두고 "체크아웃 후 보강 모드로 채점"이라고 안내한다. Plan이 없는 수동 PR은 Spec의 AC만 기준으로 하도록 프롬프트에 명시한다.
+`harness`든 `manual`이든 같은 기준으로 채점한다. 해당 PR의 브랜치가 **이미 체크아웃된 상태**이고 `HEAD`가 PR head SHA(`gh pr view <n> --json headRefOid`)와 같고 작업 트리에 변경이 없을 때만(PR 밖의 내용을 채점하지 않기 위해), 사용자 동의를 받고 `spec-verifier`를 Agent로 호출한다 (Plan 경로, Spec 경로, F-ID, 기준 브랜치 전달). 체크아웃되어 있지 않으면 채점하지 않고 `-`로 두고 "체크아웃 후 보강 모드로 채점"이라고 안내한다. Plan이 없는 수동 PR은 Spec의 AC만 기준으로 하도록 프롬프트에 명시한다.
 
 ### 누락 후속 (보강 모드)
-머지 후 같은 기능에서 생긴 `Bug` 라벨 이슈 수와, 리뷰 코멘트 중 "AC 누락"으로 분류되는 건수는 머지 직후에는 알 수 없다. 보강 모드에서 Linear(`list_issues`, 상위 이슈 또는 같은 F-ID 키워드)와 리뷰 코멘트(`gh api repos/{owner}/{repo}/pulls/<n>/comments`)를 읽어 사용자에게 분류를 확인받고 채운다.
+머지 후 같은 기능에서 생긴 `Bug` 라벨 이슈 수와, 리뷰 코멘트 중 "AC 누락"으로 분류되는 건수는 머지 직후에는 알 수 없다. 보강 모드에서 Linear(`list_issues`, 상위 이슈 또는 같은 F-ID 키워드)와 리뷰 코멘트(`gh api --paginate repos/{owner}/{repo}/pulls/<n>/comments`)를 읽어 사용자에게 분류를 확인받고 채운다.
 
 ## 3. 자가 입력 (사용자에게 묻는다)
 
