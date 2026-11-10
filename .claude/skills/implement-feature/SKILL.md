@@ -2,7 +2,7 @@
 name: implement-feature
 description: 승인된 Plan의 Task를 구현하도록 frontend-codegen, backend-codegen을 조율하고, 계약 일치와 검증 명령을 확인한다. 커밋과 push는 하지 않는다.
 disable-model-invocation: true
-argument-hint: "<Task ID 또는 Linear ID> 예: T-F10-03 또는 MEO-12 (여러 개는 공백으로 구분)"
+argument-hint: "[Task ID 또는 Linear ID] 예: T-F10-03 또는 MEO-12 (여러 개는 공백으로 구분, 비우면 내게 배정된 Task)"
 ---
 
 # Task 구현 조율
@@ -13,6 +13,9 @@ argument-hint: "<Task ID 또는 Linear ID> 예: T-F10-03 또는 MEO-12 (여러 �
 
 ## 1. 사전 조건 (하나라도 어긋나면 멈추고 보고)
 
+0. 담당자 확인: 담당자는 Linear 이슈의 담당자가 기준이다 (Plan에는 없다).
+   - `$ARGUMENTS`가 비어 있으면 Linear MCP로 담당자가 나인 `MEO` 이슈(Done 제외)를 조회해 Task 목록을 보여 주고 고르게 한다. Linear MCP가 없으면 Task ID를 직접 달라고 안내한다.
+   - 대상 Task의 담당자가 비어 있거나 다른 사람이면 알리고, 진행할지 사용자에게 묻는다. 담당자 지정은 사용자 승인 후에만 한다. Linear MCP가 없으면 "담당자 미확인"으로 보고하고 진행한다.
 1. `docs/plans/*.md`에서 대상 Task를 찾는다. Linear ID(`MEO-xx`)가 주어지면 Tasks 표의 Linear 열로 찾는다. 없으면 멈춘다.
 2. 해당 Plan의 `상태`가 `approved`인지 확인한다. `draft`면 멈춘다.
 3. 선행을 확인한다. 대상은 Task의 `선행` 열(같은 Plan과 다른 Plan의 Task)과 Plan의 "선행 Plan과 가정" 표다.
