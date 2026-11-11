@@ -12,7 +12,7 @@ argument-hint: "<web|mobile> <Plan의 API 계약 ID 또는 엔드포인트>"
 
 첫 인자(`web` 또는 `mobile`)로 정한다. 없으면 Plan Task의 영역에서 확인하고, 모르면 묻는다.
 
-- 웹: `frontend/apps/web/src/components/features/[feature]/`, 별칭 `@/src/...`
+- 웹: `frontend/apps/web/src/components/features/[feature]/`, 별칭 `@/...`
 - 모바일: `frontend/apps/mobile/src/components/features/[feature]/` (훅 패턴은 동일. 라우트 `src/app/` 안에는 두지 않는다)
 - 같은 API를 두 앱이 쓰면 Zod 스키마, 엔드포인트 상수, 타입을 `frontend/packages/shared`에 두고 양쪽 훅이 import한다. 패키지가 없으면 만들기 전에 승인받는다.
 - 웹의 공유 콘텐츠 페이지(SEO 대상)는 이 훅이 아니라 **서버 컴포넌트에서 직접 fetch**한다. 훅은 클라이언트에서 상호작용하는 부분에만 쓴다 (`frontend-web.md`).
@@ -51,7 +51,7 @@ export const stampKeys = {
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 
-import { get } from "@/src/lib/api";
+import { get } from "@/lib/api";
 
 import { stampKeys } from "../constants/queryKeys";
 import { STAMP_ENDPOINTS } from "../constants/url";
@@ -84,7 +84,7 @@ export const useStampListQuery = () =>
 ```ts
 import { http, HttpResponse } from "msw";
 
-import { STAMP_ENDPOINTS } from "@/src/components/features/stamp/constants/url";
+import { STAMP_ENDPOINTS } from "@/components/features/stamp/constants/url";
 
 export const stampHandlers = [
   http.get(`${process.env.NEXT_PUBLIC_API_URL}${STAMP_ENDPOINTS.list}`, () =>
