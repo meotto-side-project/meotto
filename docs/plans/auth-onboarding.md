@@ -9,7 +9,7 @@
 ## 선행 Plan과 가정
 | 선행 | 종류(하드/소프트) | 상태 | 이 Plan이 가정하는 것 |
 |---|---|---|---|
-| send-stamp (F-24) | 소프트 | 미작성(순서상 이후) | 공유 링크 진입 후 이동할 토마토 보내기 라우트가 있다. 라우트 경로는 `send-stamp` Plan이 정한다. T-F04-02는 그 Task를 선행으로 둔다 |
+| send-stamp (F-24) | 소프트 | 미작성(순서상 이후) | 공유 링크 진입 후 이동할 토마토 보내기 라우트가 있다. 라우트 경로는 `send-stamp` Plan이 정한다. 선행 방향은 `send-stamp`의 `T-F24-02`가 `T-F04-02`를 선행으로 두는 한쪽뿐이다(순환 방지). `T-F04-02`는 이동할 경로를 가정으로 두고 먼저 만든다 |
 | home (F-10~F-12) | 소프트 | 미작성(순서상 이후) | 로그인 성공 후 이동할 회원 홈 라우트(`/`)가 있다 |
 | design-system | 하드(문서) | 구현 대상 아님 | 색상·타이포·버튼 토큰은 `docs/specs/design-system.md` 기준으로 쓴다 |
 
@@ -81,7 +81,7 @@
 | T-F03-06 | 신규 가입 프로필 입력 화면(닉네임, 아이디 placeholder, 사진 선택) | FE-web | F-03 | frontend/apps/web/src/app/signup/**, frontend/apps/web/src/components/features/auth/** | T-F01-98, T-F03-05, 보류: 닉네임·아이디 제한, 가입 실패 흐름 | cd frontend && pnpm lint && pnpm check-types. 수동 확인: MSW 목 | |
 | T-F03-07 | 소셜 SDK 연동과 토큰 보관 브리지 | FE-mobile | F-03 | frontend/apps/mobile/src/** | 보류: 로그인 상태 유지 방식 | 수동 확인: 실기기. cd frontend && pnpm lint && pnpm check-types | |
 | T-F04-01 | 공유 링크 해석 API(C-4)와 `ShareLink` Entity | BE | F-04 AC3 | backend/src/main/java/com/meotto/api/domain/sharelink/** | T-F03-01, 보류: 공유 링크 형식·무효 처리 | cd backend && ./gradlew spotlessCheck checkstyleMain test | |
-| T-F04-02 | 공유 링크 진입 라우트에서 토마토 보내기(F-24)로 이동 | FE-web | F-04 AC3 | frontend/apps/web/src/app/(public)/** | T-F01-98, 보류: 공유 링크 형식, T-F24-02(send-stamp) | cd frontend && pnpm lint && pnpm check-types. 수동 확인: MSW 목 | |
+| T-F04-02 | 공유 링크 진입 라우트에서 토마토 보내기(F-24)로 이동 | FE-web | F-04 AC3 | frontend/apps/web/src/app/(public)/** | T-F01-98, 보류: 공유 링크 형식 | cd frontend && pnpm lint && pnpm check-types. 수동 확인: MSW 목 | |
 | T-F04-03 | 딥링크 수신과 앱 설치 여부 분기(앱 로그인 또는 앱스토어) | FE-mobile | F-04, home F-16 | frontend/apps/mobile/src/** | 보류: 공유 링크 형식, 앱 설치 감지 방식 | 수동 확인: 실기기. cd frontend && pnpm lint && pnpm check-types | |
 | T-F01-99 | 실서버 연동 확인(목 끄고 C-2 및 확정된 계약 확인) | FE-web | F-02~F-04 | - | T-F03-02, T-F03-03, T-F04-01 | 수동 확인: `NEXT_PUBLIC_API_MOCKING` 끄고 로그인·프로필 흐름. 목으로만 본 AC는 "실서버 연동 미검증" | |
 
