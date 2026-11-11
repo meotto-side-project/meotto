@@ -1,9 +1,11 @@
 # docker-compose.yml
 
+name: meotto
+
 services:
   app:
     image: ${DOCKER_IMAGE:-reyang/meotto-api:latest}
-    container_name: meotto-api
+    container_name: meotto-backend
     ports:
       - "${APP_PORT:-8080}:8080"
     environment:
@@ -23,6 +25,10 @@ services:
       FCM_CREDENTIALS_PATH: ${FCM_CREDENTIALS_PATH:-}
       AWS_S3_BUCKET: ${AWS_S3_BUCKET:-}
       AWS_REGION: ${AWS_REGION:-ap-northeast-2}
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
+      COOKIE_SAME_SITE: ${COOKIE_SAME_SITE:-None}
+      COOKIE_DOMAIN: ${COOKIE_DOMAIN:-}
+      COOKIE_PATH: ${COOKIE_PATH:-/}
       JAVA_OPTS: ${JAVA_OPTS:--XX:MaxRAMPercentage=75.0}
     depends_on:
       mysql:

@@ -1,7 +1,11 @@
 name: Backend Deploy
 
 on:
-  workflow_dispatch: # 원격 배포 서버가 준비되면 push 트리거로 되돌릴 것
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-deploy.yml'
 
 env:
   IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/meotto-api
