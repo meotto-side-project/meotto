@@ -4,7 +4,7 @@
 - F-ID: F-01 ~ F-04
 - 상태: approved
 - 선행 Plan: (없음) 소프트 가정: `send-stamp`(F-24), `home`(F-10~F-12, F-16)
-- Linear 상위 이슈: (미연동)
+- Linear 상위 이슈: FE MEO-43, BE MEO-26 (기존 이슈 재사용)
 
 ## 선행 Plan과 가정
 | 선행 | 종류(하드/소프트) | 상태 | 이 Plan이 가정하는 것 |
@@ -56,7 +56,7 @@
 
 ## 구현 순서와 의존성
 1. API 계약 표 승인 (`확정` 행: C-2)
-2. 공통 준비 `T-F01-00`, MSW 구성 `T-F01-98`
+2. 공통 준비 `T-F01-00`, MSW 구성 `T-F01-98`(MEO-38/PR #25로 대체)
 3. BE Task들 ∥ FE Task들(MSW 목)
 4. 실서버 연동 확인 `T-F01-99` (BE 완료 후)
 5. 보류 Task(`T-F01-01`, `T-F03-02`, `T-F03-04`~`T-F03-07`, `T-F04-01`~`T-F04-03`)는 질문 해소 후 `/plan-feature auth-onboarding`(갱신)으로 계약을 확정한 뒤 시작
@@ -69,21 +69,21 @@
 ## Tasks
 | ID | 제목 | 영역 | F-ID / AC | 수정 경로 | 선행 | 검증 방법 | Linear |
 |---|---|---|---|---|---|---|---|
-| T-F01-00 | 웹 공통 준비: API 클라이언트, `{name,message}` 에러 파서, 인증 쿼리 키·엔드포인트 상수, auth Zod 스키마 | FE-web | F-01~F-04 | frontend/apps/web/src/lib/**, frontend/apps/web/src/components/features/auth/constants/** | 계약 C-2 확정 | cd frontend && pnpm lint && pnpm check-types | |
-| T-F01-01 | 네이티브 스플래시와 시작 분기(온보딩 또는 홈) | FE-mobile | F-01 | frontend/apps/mobile/src/** | 보류: 로그인 상태 유지 방식, 스플래시 분기 조건 | 수동 확인: 시뮬레이터. cd frontend && pnpm lint && pnpm check-types | |
-| T-F01-98 | MSW 구성 (`msw` 설치는 승인 필요, `NEXT_PUBLIC_API_MOCKING`) | FE-web | - | frontend/apps/web/package.json, frontend/apps/web/src/mocks/** | T-F01-00 | cd frontend && pnpm lint && pnpm check-types. 수동 확인: 목 켠 상태에서 `C-2` 응답 | |
-| T-F02-01 | 온보딩 3장 슬라이드(인디케이터, 카피, 마지막 장 `멋토 시작하기`) | FE-web | F-02 AC1 | frontend/apps/web/src/app/onboarding/**, frontend/apps/web/src/components/features/onboarding/** | T-F01-00 | cd frontend && pnpm lint && pnpm check-types. AC는 수동 확인(스토리 도구 미설치) | |
-| T-F03-01 | `Member` Entity·Repository·마이그레이션 (스키마 승인 필요) | BE | F-03 | backend/src/main/java/com/meotto/api/domain/member/** | 데이터 모델 승인 | cd backend && ./gradlew spotlessCheck checkstyleMain test | |
-| T-F03-02 | 소셜 로그인 API(카카오·네이버·Apple)와 토큰 발급 | BE | F-03 AC2 | backend/src/main/java/com/meotto/api/domain/auth/**, backend/src/main/java/com/meotto/api/global/security/** | T-F03-01, 보류: 로그인 상태 유지 방식 | cd backend && ./gradlew spotlessCheck checkstyleMain test | |
-| T-F03-03 | 아이디 랜덤 제안 API(C-2) | BE | F-03 | backend/src/main/java/com/meotto/api/domain/member/** | T-F03-01, 계약 C-2 확정 | cd backend && ./gradlew spotlessCheck checkstyleMain test | |
-| T-F03-04 | 가입 프로필 완료 API(C-3) 아이디 유일성 검증 | BE | F-03 | backend/src/main/java/com/meotto/api/domain/member/** | T-F03-01, 보류: 닉네임·아이디 길이/허용 문자 | cd backend && ./gradlew spotlessCheck checkstyleMain test | |
-| T-F03-05 | 로그인 화면(3개 소셜 버튼)과 로그인 성공 후 홈 이동 | FE-web | F-03 AC2 | frontend/apps/web/src/app/login/**, frontend/apps/web/src/components/features/auth/** | T-F01-98, 보류: 로그인 상태 유지 방식 | cd frontend && pnpm lint && pnpm check-types. 수동 확인: MSW 목 | |
-| T-F03-06 | 신규 가입 프로필 입력 화면(닉네임, 아이디 placeholder, 사진 선택) | FE-web | F-03 | frontend/apps/web/src/app/signup/**, frontend/apps/web/src/components/features/auth/** | T-F01-98, T-F03-05, 보류: 닉네임·아이디 제한, 가입 실패 흐름 | cd frontend && pnpm lint && pnpm check-types. 수동 확인: MSW 목 | |
-| T-F03-07 | 소셜 SDK 연동과 토큰 보관 브리지 | FE-mobile | F-03 | frontend/apps/mobile/src/** | 보류: 로그인 상태 유지 방식 | 수동 확인: 실기기. cd frontend && pnpm lint && pnpm check-types | |
-| T-F04-01 | 공유 링크 해석 API(C-4)와 `ShareLink` Entity | BE | F-04 AC3 | backend/src/main/java/com/meotto/api/domain/sharelink/** | T-F03-01, 보류: 공유 링크 형식·무효 처리 | cd backend && ./gradlew spotlessCheck checkstyleMain test | |
-| T-F04-02 | 공유 링크 진입 라우트에서 토마토 보내기(F-24)로 이동 | FE-web | F-04 AC3 | frontend/apps/web/src/app/(public)/** | T-F01-98, 보류: 공유 링크 형식 | cd frontend && pnpm lint && pnpm check-types. 수동 확인: MSW 목 | |
-| T-F04-03 | 딥링크 수신과 앱 설치 여부 분기(앱 로그인 또는 앱스토어) | FE-mobile | F-04, home F-16 | frontend/apps/mobile/src/** | 보류: 공유 링크 형식, 앱 설치 감지 방식 | 수동 확인: 실기기. cd frontend && pnpm lint && pnpm check-types | |
-| T-F01-99 | 실서버 연동 확인(목 끄고 C-2 및 확정된 계약 확인) | FE-web | F-02~F-04 | - | T-F03-02, T-F03-03, T-F04-01 | 수동 확인: `NEXT_PUBLIC_API_MOCKING` 끄고 로그인·프로필 흐름. 목으로만 본 AC는 "실서버 연동 미검증" | |
+| T-F01-00 | 웹 공통 준비: API 클라이언트, `{name,message}` 에러 파서, 인증 쿼리 키·엔드포인트 상수, auth Zod 스키마 | FE-web | F-01~F-04 | frontend/apps/web/src/lib/**, frontend/apps/web/src/components/features/auth/constants/** | 계약 C-2 확정 | cd frontend && pnpm lint && pnpm check-types | MEO-44 |
+| T-F01-01 | 네이티브 스플래시와 시작 분기(온보딩 또는 홈) | FE-mobile | F-01 | frontend/apps/mobile/src/** | 보류: 로그인 상태 유지 방식, 스플래시 분기 조건 | 수동 확인: 시뮬레이터. cd frontend && pnpm lint && pnpm check-types | MEO-45 |
+| T-F01-98 | MSW 구성: 별도 구현 없음. `msw` 설치와 `NEXT_PUBLIC_API_MOCKING` 구성은 MEO-38(PR #25)에서 한다 | FE-web | - | - | T-F01-00 | MEO-38 머지로 대체. 인증 API 핸들러(`handlers/auth.ts`)는 각 FE Task가 계약 표 기준으로 만든다 | MEO-38 (연결) |
+| T-F02-01 | 온보딩 3장 슬라이드(인디케이터, 카피, 마지막 장 `멋토 시작하기`) | FE-web | F-02 AC1 | frontend/apps/web/src/app/onboarding/**, frontend/apps/web/src/components/features/onboarding/** | T-F01-00 | cd frontend && pnpm lint && pnpm check-types. AC는 수동 확인(스토리 도구 미설치) | MEO-50 |
+| T-F03-01 | `Member` Entity·Repository·마이그레이션 (스키마 승인 필요) | BE | F-03 | backend/src/main/java/com/meotto/api/domain/member/** | 데이터 모델 승인 | cd backend && ./gradlew spotlessCheck checkstyleMain test | MEO-46 |
+| T-F03-02 | 소셜 로그인 API(카카오·네이버·Apple)와 토큰 발급 | BE | F-03 AC2 | backend/src/main/java/com/meotto/api/domain/auth/**, backend/src/main/java/com/meotto/api/global/security/** | T-F03-01, 보류: 로그인 상태 유지 방식 | cd backend && ./gradlew spotlessCheck checkstyleMain test | MEO-26 (연결) |
+| T-F03-03 | 아이디 랜덤 제안 API(C-2) | BE | F-03 | backend/src/main/java/com/meotto/api/domain/member/** | T-F03-01, 계약 C-2 확정 | cd backend && ./gradlew spotlessCheck checkstyleMain test | MEO-51 |
+| T-F03-04 | 가입 프로필 완료 API(C-3) 아이디 유일성 검증 | BE | F-03 | backend/src/main/java/com/meotto/api/domain/member/** | T-F03-01, 보류: 닉네임·아이디 길이/허용 문자 | cd backend && ./gradlew spotlessCheck checkstyleMain test | MEO-52 |
+| T-F03-05 | 로그인 화면(3개 소셜 버튼)과 로그인 성공 후 홈 이동 | FE-web | F-03 AC2 | frontend/apps/web/src/app/login/**, frontend/apps/web/src/components/features/auth/** | T-F01-98, 보류: 로그인 상태 유지 방식 | cd frontend && pnpm lint && pnpm check-types. 수동 확인: MSW 목 | MEO-54 |
+| T-F03-06 | 신규 가입 프로필 입력 화면(닉네임, 아이디 placeholder, 사진 선택) | FE-web | F-03 | frontend/apps/web/src/app/signup/**, frontend/apps/web/src/components/features/auth/** | T-F01-98, T-F03-05, 보류: 닉네임·아이디 제한, 가입 실패 흐름 | cd frontend && pnpm lint && pnpm check-types. 수동 확인: MSW 목 | MEO-57 |
+| T-F03-07 | 소셜 SDK 연동과 토큰 보관 브리지 | FE-mobile | F-03 | frontend/apps/mobile/src/** | 보류: 로그인 상태 유지 방식 | 수동 확인: 실기기. cd frontend && pnpm lint && pnpm check-types | MEO-47 |
+| T-F04-01 | 공유 링크 해석 API(C-4)와 `ShareLink` Entity | BE | F-04 AC3 | backend/src/main/java/com/meotto/api/domain/sharelink/** | T-F03-01, 보류: 공유 링크 형식·무효 처리 | cd backend && ./gradlew spotlessCheck checkstyleMain test | MEO-53 |
+| T-F04-02 | 공유 링크 진입 라우트에서 토마토 보내기(F-24)로 이동 | FE-web | F-04 AC3 | frontend/apps/web/src/app/(public)/** | T-F01-98, 보류: 공유 링크 형식 | cd frontend && pnpm lint && pnpm check-types. 수동 확인: MSW 목 | MEO-55 |
+| T-F04-03 | 딥링크 수신과 앱 설치 여부 분기(앱 로그인 또는 앱스토어) | FE-mobile | F-04, home F-16 | frontend/apps/mobile/src/** | 보류: 공유 링크 형식, 앱 설치 감지 방식 | 수동 확인: 실기기. cd frontend && pnpm lint && pnpm check-types | MEO-48 |
+| T-F01-99 | 실서버 연동 확인(목 끄고 C-2 및 확정된 계약 확인) | FE-web | F-02~F-04 | - | T-F03-02, T-F03-03, T-F04-01 | 수동 확인: `NEXT_PUBLIC_API_MOCKING` 끄고 로그인·프로필 흐름. 목으로만 본 AC는 "실서버 연동 미검증" | MEO-56 |
 
 AC 연결: F-02 AC1 → T-F02-01. F-03 AC2 → T-F03-02, T-F03-05. F-04 AC3 → T-F04-01, T-F04-02. 연결되지 않은 AC 없음. F-01에는 AC가 없다(분기 조건이 보류라 AC 작성 불가).
 
