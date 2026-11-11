@@ -66,7 +66,7 @@ API가 걸린 Task는 Agent 보고의 `계약 변경 필요`와 실제 코드를
 | 영역 | 테스트 | 작성 |
 |---|---|---|
 | BE | 서비스 단위 테스트(Mockito), 필요하면 Controller 테스트 | `backend-codegen`이 구현과 함께 작성 (Agent 프롬프트에 "AC별 테스트 포함"을 명시) |
-| FE-web | 컴포넌트(Storybook play + Vitest), 핵심 여정은 Playwright | `/create-test`, `/create-e2e` 절차로 `frontend-codegen`이 작성 |
+| FE-web | 컴포넌트·훅·스키마(Vitest + React Testing Library), 핵심 여정은 Playwright | `/create-test`, `/create-e2e` 절차로 `frontend-codegen`이 작성 |
 | FE-mobile | jest-expo + RNTL, 핵심 여정은 Maestro | 위와 동일 |
 
 - 테스트 도구가 설치되어 있지 않으면 테스트를 만들지 않고 "미검증"으로 기록한다. 도구 설치는 사용자 승인 후 별도 작업이다.

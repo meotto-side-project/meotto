@@ -94,7 +94,8 @@ export const stampHandlers = [
 ```
 
 - 응답은 계약 표의 Response 필드와 같게 쓰고, 계약에 있는 에러(`{ name, message }`)도 상태코드와 함께 핸들러로 만든다 (필요하면 테스트에서 `server.use`로 덮어씀).
-- 핸들러를 `src/mocks/browser.ts`, `server.ts`의 목록에 등록한다. `msw`가 설치되어 있지 않으면 설치하지 말고 멈춰 사용자에게 승인을 요청한다.
+- 핸들러를 `src/mocks/handlers.ts` 목록에 추가한다. `browser.ts`(개발)와 `server.ts`(서버 컴포넌트·테스트)가 이 목록을 함께 쓰므로 한 곳에만 등록하면 된다.
+- MSW 3 API다. `http`, `HttpResponse`는 `msw`에서 가져오고, 옵션 이름은 기억으로 쓰지 말고 `node_modules/msw`의 타입을 확인한다.
 
 ## 규칙
 
