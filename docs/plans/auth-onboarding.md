@@ -2,7 +2,7 @@
 
 - Spec: docs/specs/auth-onboarding.md
 - F-ID: F-01 ~ F-04
-- 상태: draft
+- 상태: approved
 - 선행 Plan: (없음) 소프트 가정: `send-stamp`(F-24), `home`(F-10~F-12, F-16)
 - Linear 상위 이슈: (미연동)
 

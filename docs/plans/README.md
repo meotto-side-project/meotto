@@ -4,7 +4,7 @@ Spec(`docs/specs/`)마다 하나의 Plan이 있다. 설계, API 계약, Tasks는
 
 | Plan | 상태 | 선행 Plan (하드 / 소프트) | Linear 상위 이슈 |
 |---|---|---|---|
-| [auth-onboarding](auth-onboarding.md) F-01~F-04 | draft | 없음 / send-stamp(F-24), home | (미연동) |
+| [auth-onboarding](auth-onboarding.md) F-01~F-04 | approved | 없음 / send-stamp(F-24), home | (미연동) |
 | [mypage-settings](mypage-settings.md) F-40~F-45 | draft | auth-onboarding(F-03) / auth-onboarding(F-04), my-board, stamp·friend 도메인 | (미연동) |
 | [friends](friends.md) F-50~F-54 | draft | auth-onboarding(F-03), mypage-settings(F-40, F-42), stamp 도메인(집계) / send-stamp(F-21), my-board | (미연동) |
 | [send-stamp](send-stamp.md) F-20~F-24 | draft | auth-onboarding(F-03, F-04), friends(F-51, F-52) / home, notifications(F-60) | (미연동) |
