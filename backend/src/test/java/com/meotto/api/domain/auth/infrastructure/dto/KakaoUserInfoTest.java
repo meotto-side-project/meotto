@@ -17,7 +17,6 @@ class KakaoUserInfoTest {
 		Map<String, Object> attributes = Map.of(
 			"id", 123456789L,
 			"kakao_account", Map.of(
-				"email", "user@kakao.com",
 				"profile", Map.of(
 					"nickname", "멋토유저",
 					"profile_image_url", "https://example.com/profile.png")));
@@ -25,14 +24,13 @@ class KakaoUserInfoTest {
 		KakaoUserInfo info = KakaoUserInfo.from(attributes);
 
 		assertThat(info.providerId()).isEqualTo("123456789");
-		assertThat(info.email()).isEqualTo("user@kakao.com");
 		assertThat(info.nickname()).isEqualTo("멋토유저");
 		assertThat(info.profileImageUrl()).isEqualTo("https://example.com/profile.png");
 	}
 
 	@Test
 	void from_id가없으면_예외() {
-		Map<String, Object> attributes = Map.of("kakao_account", Map.of("email", "user@kakao.com"));
+		Map<String, Object> attributes = Map.of("kakao_account", Map.of("profile_nickname", "멋토유저"));
 
 		assertThatThrownBy(() -> KakaoUserInfo.from(attributes))
 			.isInstanceOf(BusinessException.class)

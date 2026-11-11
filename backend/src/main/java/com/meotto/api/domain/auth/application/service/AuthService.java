@@ -37,7 +37,7 @@ public class AuthService {
 	public void loginWithKakao(String kakaoAccessToken, HttpServletResponse response) {
 		KakaoUserInfo kakaoUserInfo = kakaoApiClient.getUserInfo(kakaoAccessToken);
 		User user = getOrCreateUser(kakaoUserInfo);
-		issueTokens(user.id(), user.email(), user.role().name(), response);
+		issueTokens(user.id(), user.role().name(), response);
 	}
 
 	public void reissue(String refreshToken, HttpServletResponse response) {
@@ -53,7 +53,7 @@ public class AuthService {
 		UserEntity user = userRepository.findByIdAndDeletedAtIsNull(userId)
 			.orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
 
-		issueTokens(user.getId(), user.getEmail(), user.getRole().name(), response);
+		issueTokens(user.getId(), user.getRole().name(), response);
 	}
 
 	public void logout(HttpServletResponse response) {
@@ -66,13 +66,14 @@ public class AuthService {
 		return userRepository.findByProviderAndProviderId(OAuthProvider.KAKAO, info.providerId())
 			.map(UserEntity::toModel)
 			.orElseGet(() -> {
-				User newUser = User.create(info.email(), info.nickname(), OAuthProvider.KAKAO, info.providerId());
+				User newUser = User.create(
+					info.nickname(), info.profileImageUrl(), OAuthProvider.KAKAO, info.providerId());
 				return userRepository.save(UserEntity.from(newUser)).toModel();
 			});
 	}
 
-	private void issueTokens(Long userId, String email, String role, HttpServletResponse response) {
-		String accessToken = jwtTokenProvider.createAccessToken(userId, email, role);
+	private void issueTokens(Long userId, String role, HttpServletResponse response) {
+		String accessToken = jwtTokenProvider.createAccessToken(userId, role);
 		String refreshToken = jwtTokenProvider.createRefreshToken(userId);
 
 		refreshTokenRepository.save(userId, refreshToken);

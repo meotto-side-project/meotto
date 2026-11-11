@@ -10,7 +10,6 @@ import lombok.Builder;
 @Builder
 public record KakaoUserInfo(
 	String providerId,
-	String email,
 	String nickname,
 	String profileImageUrl) {
 
@@ -26,7 +25,6 @@ public record KakaoUserInfo(
 
 		return KakaoUserInfo.builder()
 			.providerId(String.valueOf(id))
-			.email(kakaoAccount == null ? null : (String)kakaoAccount.get("email"))
 			.nickname(profile == null ? null : (String)profile.get("nickname"))
 			.profileImageUrl(profile == null ? null : (String)profile.get("profile_image_url"))
 			.build();

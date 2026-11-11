@@ -77,7 +77,7 @@ com.meotto.api
 
 | 도메인 | 역할 |
 |--------|------|
-| user | 유저 정보 (이메일, 닉네임, 소셜 로그인 provider/providerId, role) |
+| user | 유저 정보 (닉네임, 프로필 사진, 소셜 로그인 provider/providerId, role) |
 | auth | 카카오 소셜 로그인(토큰 검증), JWT 발급/재발급, 로그아웃 |
 | (TBD) | 이후 도메인 구현 전 — 기능 개발과 함께 채워 넣기 |
 

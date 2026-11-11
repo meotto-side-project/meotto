@@ -24,10 +24,10 @@ import lombok.NoArgsConstructor;
 public class UserEntity extends BaseEntity {
 
 	@Column(nullable = false)
-	private String email;
-
-	@Column(nullable = false)
 	private String nickname;
+
+	@Column(name = "profile_image_url", nullable = true)
+	private String profileImageUrl;
 
 	@Column(nullable = false)
 	@Enumerated(EnumType.STRING)
@@ -41,10 +41,12 @@ public class UserEntity extends BaseEntity {
 	private UserRole role;
 
 	public static UserEntity from(User model) {
-		return new UserEntity(model.email(), model.nickname(), model.provider(), model.providerId(), model.role());
+		return new UserEntity(
+			model.nickname(), model.profileImageUrl(), model.provider(), model.providerId(), model.role());
 	}
 
 	public User toModel() {
-		return new User(getId(), email, nickname, provider, providerId, role, getCreatedAt(), getUpdatedAt());
+		return new User(
+			getId(), nickname, profileImageUrl, provider, providerId, role, getCreatedAt(), getUpdatedAt());
 	}
 }

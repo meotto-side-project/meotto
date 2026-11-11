@@ -14,6 +14,7 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -63,23 +64,25 @@ class AuthServiceTest {
 	void loginWithKakao_신규유저면_유저를_생성하고_토큰을_발급한다() {
 		KakaoUserInfo kakaoUserInfo = KakaoUserInfo.builder()
 			.providerId("123")
-			.email("user@kakao.com")
 			.nickname("멋토유저")
+			.profileImageUrl("https://kakao.com/profile.jpg")
 			.build();
 		when(kakaoApiClient.getUserInfo("kakao-access-token")).thenReturn(kakaoUserInfo);
 		when(userRepository.findByProviderAndProviderId(OAuthProvider.KAKAO, "123")).thenReturn(Optional.empty());
 
 		UserEntity savedEntity = UserEntity.from(
-			User.create("user@kakao.com", "멋토유저", OAuthProvider.KAKAO, "123"));
+			User.create("멋토유저", "https://kakao.com/profile.jpg", OAuthProvider.KAKAO, "123"));
 		ReflectionTestUtils.setField(savedEntity, "id", 1L);
 		when(userRepository.save(any())).thenReturn(savedEntity);
 
-		when(jwtTokenProvider.createAccessToken(1L, "user@kakao.com", "USER")).thenReturn("access-token");
+		when(jwtTokenProvider.createAccessToken(1L, "USER")).thenReturn("access-token");
 		when(jwtTokenProvider.createRefreshToken(1L)).thenReturn("refresh-token");
 
 		authService.loginWithKakao("kakao-access-token", response);
 
-		verify(userRepository, times(1)).save(any());
+		ArgumentCaptor<UserEntity> savedCaptor = ArgumentCaptor.forClass(UserEntity.class);
+		verify(userRepository, times(1)).save(savedCaptor.capture());
+		assertThat(savedCaptor.getValue().getProfileImageUrl()).isEqualTo("https://kakao.com/profile.jpg");
 		verify(refreshTokenRepository).save(1L, "refresh-token");
 		verify(cookieUtil).addAccessTokenCookie(response, "access-token");
 		verify(cookieUtil).addRefreshTokenCookie(response, "refresh-token");
@@ -89,18 +92,17 @@ class AuthServiceTest {
 	void loginWithKakao_기존유저면_유저를_재사용하고_토큰만_발급한다() {
 		KakaoUserInfo kakaoUserInfo = KakaoUserInfo.builder()
 			.providerId("123")
-			.email("user@kakao.com")
 			.nickname("멋토유저")
 			.build();
 		when(kakaoApiClient.getUserInfo("kakao-access-token")).thenReturn(kakaoUserInfo);
 
 		UserEntity existingEntity = UserEntity.from(
-			User.create("user@kakao.com", "멋토유저", OAuthProvider.KAKAO, "123"));
+			User.create("멋토유저", null, OAuthProvider.KAKAO, "123"));
 		ReflectionTestUtils.setField(existingEntity, "id", 1L);
 		when(userRepository.findByProviderAndProviderId(OAuthProvider.KAKAO, "123"))
 			.thenReturn(Optional.of(existingEntity));
 
-		when(jwtTokenProvider.createAccessToken(1L, "user@kakao.com", "USER")).thenReturn("access-token");
+		when(jwtTokenProvider.createAccessToken(1L, "USER")).thenReturn("access-token");
 		when(jwtTokenProvider.createRefreshToken(1L)).thenReturn("refresh-token");
 
 		authService.loginWithKakao("kakao-access-token", response);
@@ -156,11 +158,11 @@ class AuthServiceTest {
 		when(jwtTokenExtractor.getUserId(claims)).thenReturn(1L);
 		when(refreshTokenRepository.findByUserId(1L)).thenReturn(Optional.of("refresh-token"));
 
-		UserEntity entity = UserEntity.from(User.create("user@kakao.com", "멋토유저", OAuthProvider.KAKAO, "123"));
+		UserEntity entity = UserEntity.from(User.create("멋토유저", null, OAuthProvider.KAKAO, "123"));
 		ReflectionTestUtils.setField(entity, "id", 1L);
 		when(userRepository.findByIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(entity));
 
-		when(jwtTokenProvider.createAccessToken(1L, "user@kakao.com", "USER")).thenReturn("new-access-token");
+		when(jwtTokenProvider.createAccessToken(1L, "USER")).thenReturn("new-access-token");
 		when(jwtTokenProvider.createRefreshToken(1L)).thenReturn("new-refresh-token");
 
 		authService.reissue("refresh-token", response);
