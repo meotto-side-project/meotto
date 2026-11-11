@@ -7,11 +7,11 @@ import com.meotto.api.domain.auth.domain.repository.RefreshTokenRepository;
 import com.meotto.api.domain.auth.exception.AuthErrorCode;
 import com.meotto.api.domain.auth.infrastructure.client.KakaoApiClient;
 import com.meotto.api.domain.auth.infrastructure.dto.KakaoUserInfo;
-import com.meotto.api.domain.user.domain.entity.UserEntity;
-import com.meotto.api.domain.user.domain.model.User;
-import com.meotto.api.domain.user.domain.model.enums.OAuthProvider;
-import com.meotto.api.domain.user.domain.repository.UserRepository;
-import com.meotto.api.domain.user.exception.UserErrorCode;
+import com.meotto.api.domain.member.domain.entity.MemberEntity;
+import com.meotto.api.domain.member.domain.model.Member;
+import com.meotto.api.domain.member.domain.model.enums.OAuthProvider;
+import com.meotto.api.domain.member.domain.repository.MemberRepository;
+import com.meotto.api.domain.member.exception.MemberErrorCode;
 import com.meotto.api.global.exception.BusinessException;
 import com.meotto.api.global.security.context.SecurityUtil;
 import com.meotto.api.global.security.cookie.CookieUtil;
@@ -28,7 +28,7 @@ import lombok.RequiredArgsConstructor;
 public class AuthService {
 
 	private final KakaoApiClient kakaoApiClient;
-	private final UserRepository userRepository;
+	private final MemberRepository memberRepository;
 	private final RefreshTokenRepository refreshTokenRepository;
 	private final JwtTokenProvider jwtTokenProvider;
 	private final JwtTokenExtractor jwtTokenExtractor;
@@ -36,8 +36,8 @@ public class AuthService {
 
 	public void loginWithKakao(String kakaoAccessToken, HttpServletResponse response) {
 		KakaoUserInfo kakaoUserInfo = kakaoApiClient.getUserInfo(kakaoAccessToken);
-		User user = getOrCreateUser(kakaoUserInfo);
-		issueTokens(user.id(), user.role().name(), response);
+		Member member = getOrCreateMember(kakaoUserInfo);
+		issueTokens(member.id(), member.role().name(), response);
 	}
 
 	public void reissue(String refreshToken, HttpServletResponse response) {
@@ -50,10 +50,10 @@ public class AuthService {
 			throw new BusinessException(AuthErrorCode.INVALID_REFRESH_TOKEN);
 		}
 
-		UserEntity user = userRepository.findByIdAndDeletedAtIsNull(userId)
-			.orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
+		MemberEntity member = memberRepository.findByIdAndDeletedAtIsNull(userId)
+			.orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
 
-		issueTokens(user.getId(), user.getRole().name(), response);
+		issueTokens(member.getId(), member.getRole().name(), response);
 	}
 
 	public void logout(HttpServletResponse response) {
@@ -62,13 +62,13 @@ public class AuthService {
 		cookieUtil.deleteCookies(response);
 	}
 
-	private User getOrCreateUser(KakaoUserInfo info) {
-		return userRepository.findByProviderAndProviderId(OAuthProvider.KAKAO, info.providerId())
-			.map(UserEntity::toModel)
+	private Member getOrCreateMember(KakaoUserInfo info) {
+		return memberRepository.findByProviderAndProviderId(OAuthProvider.KAKAO, info.providerId())
+			.map(MemberEntity::toModel)
 			.orElseGet(() -> {
-				User newUser = User.create(
+				Member newMember = Member.create(
 					info.nickname(), info.profileImageUrl(), OAuthProvider.KAKAO, info.providerId());
-				return userRepository.save(UserEntity.from(newUser)).toModel();
+				return memberRepository.save(MemberEntity.from(newMember)).toModel();
 			});
 	}
 

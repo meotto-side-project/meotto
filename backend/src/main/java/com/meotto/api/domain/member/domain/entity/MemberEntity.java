@@ -1,8 +1,8 @@
-package com.meotto.api.domain.user.domain.entity;
+package com.meotto.api.domain.member.domain.entity;
 
-import com.meotto.api.domain.user.domain.model.User;
-import com.meotto.api.domain.user.domain.model.enums.OAuthProvider;
-import com.meotto.api.domain.user.domain.model.enums.UserRole;
+import com.meotto.api.domain.member.domain.model.Member;
+import com.meotto.api.domain.member.domain.model.enums.MemberRole;
+import com.meotto.api.domain.member.domain.model.enums.OAuthProvider;
 import com.meotto.api.global.common.entity.BaseEntity;
 
 import jakarta.persistence.Column;
@@ -17,11 +17,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "users", uniqueConstraints = @UniqueConstraint(columnNames = {"provider", "provider_id"}))
+@Table(name = "member", uniqueConstraints = @UniqueConstraint(columnNames = {"provider", "provider_id"}))
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-public class UserEntity extends BaseEntity {
+public class MemberEntity extends BaseEntity {
 
 	@Column(nullable = false)
 	private String nickname;
@@ -38,15 +38,15 @@ public class UserEntity extends BaseEntity {
 
 	@Column(nullable = false)
 	@Enumerated(EnumType.STRING)
-	private UserRole role;
+	private MemberRole role;
 
-	public static UserEntity from(User model) {
-		return new UserEntity(
+	public static MemberEntity from(Member model) {
+		return new MemberEntity(
 			model.nickname(), model.profileImageUrl(), model.provider(), model.providerId(), model.role());
 	}
 
-	public User toModel() {
-		return new User(
+	public Member toModel() {
+		return new Member(
 			getId(), nickname, profileImageUrl, provider, providerId, role, getCreatedAt(), getUpdatedAt());
 	}
 }

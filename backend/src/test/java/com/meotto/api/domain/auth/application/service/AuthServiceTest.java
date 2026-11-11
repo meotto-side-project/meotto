@@ -25,11 +25,11 @@ import com.meotto.api.domain.auth.domain.repository.RefreshTokenRepository;
 import com.meotto.api.domain.auth.exception.AuthErrorCode;
 import com.meotto.api.domain.auth.infrastructure.client.KakaoApiClient;
 import com.meotto.api.domain.auth.infrastructure.dto.KakaoUserInfo;
-import com.meotto.api.domain.user.domain.entity.UserEntity;
-import com.meotto.api.domain.user.domain.model.User;
-import com.meotto.api.domain.user.domain.model.enums.OAuthProvider;
-import com.meotto.api.domain.user.domain.repository.UserRepository;
-import com.meotto.api.domain.user.exception.UserErrorCode;
+import com.meotto.api.domain.member.domain.entity.MemberEntity;
+import com.meotto.api.domain.member.domain.model.Member;
+import com.meotto.api.domain.member.domain.model.enums.OAuthProvider;
+import com.meotto.api.domain.member.domain.repository.MemberRepository;
+import com.meotto.api.domain.member.exception.MemberErrorCode;
 import com.meotto.api.global.exception.BusinessException;
 import com.meotto.api.global.security.context.SecurityUtil;
 import com.meotto.api.global.security.cookie.CookieUtil;
@@ -48,7 +48,7 @@ class AuthServiceTest {
 	@Mock
 	private KakaoApiClient kakaoApiClient;
 	@Mock
-	private UserRepository userRepository;
+	private MemberRepository memberRepository;
 	@Mock
 	private RefreshTokenRepository refreshTokenRepository;
 	@Mock
@@ -68,20 +68,20 @@ class AuthServiceTest {
 			.profileImageUrl("https://kakao.com/profile.jpg")
 			.build();
 		when(kakaoApiClient.getUserInfo("kakao-access-token")).thenReturn(kakaoUserInfo);
-		when(userRepository.findByProviderAndProviderId(OAuthProvider.KAKAO, "123")).thenReturn(Optional.empty());
+		when(memberRepository.findByProviderAndProviderId(OAuthProvider.KAKAO, "123")).thenReturn(Optional.empty());
 
-		UserEntity savedEntity = UserEntity.from(
-			User.create("멋토유저", "https://kakao.com/profile.jpg", OAuthProvider.KAKAO, "123"));
+		MemberEntity savedEntity = MemberEntity.from(
+			Member.create("멋토유저", "https://kakao.com/profile.jpg", OAuthProvider.KAKAO, "123"));
 		ReflectionTestUtils.setField(savedEntity, "id", 1L);
-		when(userRepository.save(any())).thenReturn(savedEntity);
+		when(memberRepository.save(any())).thenReturn(savedEntity);
 
 		when(jwtTokenProvider.createAccessToken(1L, "USER")).thenReturn("access-token");
 		when(jwtTokenProvider.createRefreshToken(1L)).thenReturn("refresh-token");
 
 		authService.loginWithKakao("kakao-access-token", response);
 
-		ArgumentCaptor<UserEntity> savedCaptor = ArgumentCaptor.forClass(UserEntity.class);
-		verify(userRepository, times(1)).save(savedCaptor.capture());
+		ArgumentCaptor<MemberEntity> savedCaptor = ArgumentCaptor.forClass(MemberEntity.class);
+		verify(memberRepository, times(1)).save(savedCaptor.capture());
 		assertThat(savedCaptor.getValue().getProfileImageUrl()).isEqualTo("https://kakao.com/profile.jpg");
 		verify(refreshTokenRepository).save(1L, "refresh-token");
 		verify(cookieUtil).addAccessTokenCookie(response, "access-token");
@@ -96,10 +96,10 @@ class AuthServiceTest {
 			.build();
 		when(kakaoApiClient.getUserInfo("kakao-access-token")).thenReturn(kakaoUserInfo);
 
-		UserEntity existingEntity = UserEntity.from(
-			User.create("멋토유저", null, OAuthProvider.KAKAO, "123"));
+		MemberEntity existingEntity = MemberEntity.from(
+			Member.create("멋토유저", null, OAuthProvider.KAKAO, "123"));
 		ReflectionTestUtils.setField(existingEntity, "id", 1L);
-		when(userRepository.findByProviderAndProviderId(OAuthProvider.KAKAO, "123"))
+		when(memberRepository.findByProviderAndProviderId(OAuthProvider.KAKAO, "123"))
 			.thenReturn(Optional.of(existingEntity));
 
 		when(jwtTokenProvider.createAccessToken(1L, "USER")).thenReturn("access-token");
@@ -107,7 +107,7 @@ class AuthServiceTest {
 
 		authService.loginWithKakao("kakao-access-token", response);
 
-		verify(userRepository, never()).save(any());
+		verify(memberRepository, never()).save(any());
 		verify(refreshTokenRepository).save(1L, "refresh-token");
 	}
 
@@ -143,12 +143,12 @@ class AuthServiceTest {
 		when(jwtTokenExtractor.parseClaims("refresh-token")).thenReturn(claims);
 		when(jwtTokenExtractor.getUserId(claims)).thenReturn(1L);
 		when(refreshTokenRepository.findByUserId(1L)).thenReturn(Optional.of("refresh-token"));
-		when(userRepository.findByIdAndDeletedAtIsNull(1L)).thenReturn(Optional.empty());
+		when(memberRepository.findByIdAndDeletedAtIsNull(1L)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> authService.reissue("refresh-token", response))
 			.isInstanceOf(BusinessException.class)
 			.satisfies(e -> assertThat(((BusinessException)e).getErrorCode())
-				.isEqualTo(UserErrorCode.USER_NOT_FOUND));
+				.isEqualTo(MemberErrorCode.MEMBER_NOT_FOUND));
 	}
 
 	@Test
@@ -158,9 +158,9 @@ class AuthServiceTest {
 		when(jwtTokenExtractor.getUserId(claims)).thenReturn(1L);
 		when(refreshTokenRepository.findByUserId(1L)).thenReturn(Optional.of("refresh-token"));
 
-		UserEntity entity = UserEntity.from(User.create("멋토유저", null, OAuthProvider.KAKAO, "123"));
+		MemberEntity entity = MemberEntity.from(Member.create("멋토유저", null, OAuthProvider.KAKAO, "123"));
 		ReflectionTestUtils.setField(entity, "id", 1L);
-		when(userRepository.findByIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(entity));
+		when(memberRepository.findByIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(entity));
 
 		when(jwtTokenProvider.createAccessToken(1L, "USER")).thenReturn("new-access-token");
 		when(jwtTokenProvider.createRefreshToken(1L)).thenReturn("new-refresh-token");
