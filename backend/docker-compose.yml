@@ -1,9 +1,11 @@
 # docker-compose.yml
 
+name: meotto
+
 services:
   app:
     image: ${DOCKER_IMAGE:-reyang/meotto-api:latest}
-    container_name: meotto-api
+    container_name: meotto-backend
     ports:
       - "${APP_PORT:-8080}:8080"
     environment:
