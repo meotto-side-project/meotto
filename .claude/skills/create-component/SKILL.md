@@ -10,7 +10,7 @@ argument-hint: "<web|mobile> <컴포넌트 이름과 용도>"
 
 ## 플랫폼
 
-첫 인자(`web` 또는 `mobile`)로 정한다. 없으면 Plan Task의 영역(`FE-web`/`FE-mobile`)에서 확인하고, 그래도 모르면 묻는다. 아래 본문은 **웹**(`frontend/apps/web/`, import 별칭 `@/src/...`) 기준이고, 모바일은 맨 아래 "모바일" 절을 따른다. 규칙은 `.claude/rules/frontend.md`와 플랫폼별 `frontend-web.md`/`frontend-mobile.md`.
+첫 인자(`web` 또는 `mobile`)로 정한다. 없으면 Plan Task의 영역(`FE-web`/`FE-mobile`)에서 확인하고, 그래도 모르면 묻는다. 아래 본문은 **웹**(`frontend/apps/web/`, import 별칭 `@/...`) 기준이고, 모바일은 맨 아래 "모바일" 절을 따른다. 규칙은 `.claude/rules/frontend.md`와 플랫폼별 `frontend-web.md`/`frontend-mobile.md`.
 
 ## 시작 전 확인
 
@@ -28,7 +28,7 @@ argument-hint: "<web|mobile> <컴포넌트 이름과 용도>"
 
 - `ComponentProps<'element'>`를 확장해 네이티브 props를 상속한다.
 - **default export**.
-- 조건부 클래스는 `cn()` (`@/src/lib/helpers/cn`).
+- 조건부 클래스는 `cn()` (`@/lib/helpers/cn`).
 - 디자인 토큰만 사용. 배럴(`index.ts`) import 금지, 직접 경로 사용.
 - 무거운 컴포넌트는 `next/dynamic`으로 동적 import.
 - 인터랙티브 요소에는 접근 가능한 이름(텍스트 또는 `aria-label`)과 시맨틱 태그를 쓴다.
@@ -38,7 +38,7 @@ argument-hint: "<web|mobile> <컴포넌트 이름과 용도>"
 ```tsx
 import { type ComponentProps } from "react";
 
-import { cn } from "@/src/lib/helpers/cn";
+import { cn } from "@/lib/helpers/cn";
 
 interface ButtonProps extends ComponentProps<"button"> {
   label: string;

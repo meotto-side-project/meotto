@@ -23,7 +23,7 @@ paths:
 
 ## 구조
 
-- 별칭 `@/*` → 앱 루트. 소스는 `@/src/...`.
+- 별칭 `@/*` → `src/`. 소스는 `@/lib/...`처럼 쓴다.
 - `src/components/ui/[Name]/[Name].tsx`: 범용 컴포넌트. `features`를 참조하지 않는다.
 - `src/components/features/[feature]/`: 기능 전용. 하위에 `constants/url.ts`, `constants/queryKeys.ts`, `queries/`.
 - import 방향은 상위 → 하위만: `ui`는 `features`를 못 가리키고, feature끼리 직접 import하지 않으며, `lib`는 컴포넌트를 가리키지 않는다.
