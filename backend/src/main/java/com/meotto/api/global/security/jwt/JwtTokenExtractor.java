@@ -40,10 +40,6 @@ public class JwtTokenExtractor {
 		}
 	}
 
-	public String getEmail(Claims claims) {
-		return claims.get("email", String.class);
-	}
-
 	public String getRole(Claims claims) {
 		String role = claims.get("role", String.class);
 		if (role == null) {
