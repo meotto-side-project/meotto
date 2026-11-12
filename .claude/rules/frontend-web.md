@@ -33,14 +33,17 @@ paths:
 
 ## API 목 (MSW)
 
-- 위치: `src/mocks/handlers/[feature].ts`(기능별 핸들러), `src/mocks/browser.ts`(클라이언트, 워커), `src/mocks/server.ts`(서버 컴포넌트·테스트용 node 서버), 워커 파일은 `public/`.
-- 활성화: `NEXT_PUBLIC_API_MOCKING=enabled`일 때만. 클라이언트는 앱 진입 시, 서버 컴포넌트의 fetch는 `instrumentation.ts`에서 `server.listen()`으로 켠다.
+- 위치: `src/mocks/handlers/[feature].ts`(기능별 핸들러), `src/mocks/handlers.ts`(전체 핸들러 목록), `src/mocks/browser.ts`(브라우저용 워커), `src/mocks/server.ts`(서버 컴포넌트·테스트용 node 서버), 워커 파일은 `public/mockServiceWorker.js`(`msw init`으로 생성, 직접 수정 금지).
+- 기능별 핸들러는 `handlers.ts` 목록에만 추가한다. `browser.ts`와 `server.ts`가 이 목록을 함께 쓰므로, 한쪽에만 등록되어 개발 목과 테스트 목이 달라지는 일이 없다.
+- 활성화: `NEXT_PUBLIC_API_MOCKING=enabled`일 때만. 브라우저는 `src/instrumentation-client.ts`, 서버 컴포넌트의 fetch는 `src/instrumentation.ts`에서 켠다. 이 두 파일 외에는 목 여부를 분기하지 않는다.
+- `instrumentation-client`의 비동기 작업은 하이드레이션 전에 끝난다는 보장이 없다(Next 문서). 페이지 진입 직후 첫 요청이 워커 활성화보다 빠르면 실서버로 갈 수 있다.
+- 단위 테스트(`src/test/setup.ts`)는 `onUnhandledFrame: "error"`로 서버를 띄운다. 핸들러가 없는 요청은 테스트 실패가 된다. 테스트별 응답은 `server.use()`로 덮어쓴다.
 - 서버 컴포넌트가 가져오는 데이터(공유 콘텐츠 페이지)도 같은 핸들러로 목 처리한다. 도메인은 `NEXT_PUBLIC_API_URL` 기준이다.
 - 핸들러 작성 절차는 `create-api-hook`의 "목 핸들러" 단계를 따른다. 공통 규칙은 `frontend.md`.
 
 ## 테스트와 검증
 
-- 컴포넌트: Storybook + Vitest(스토리 `play` 함수). 스킬: `create-test`.
-- E2E: Playwright, 핵심 여정만. 스킬: `create-e2e`.
-- 두 도구는 현재 미설치다. 설치는 별도 승인 작업이다.
+- 단위·컴포넌트: Vitest + React Testing Library(jsdom). 컴포넌트, 훅, Zod 스키마, 유틸 모두 대상. 파일은 대상 옆 `[Name].test.ts(x)`. 실행: `pnpm test`. 스킬: `create-test`.
+- E2E: Playwright, 핵심 여정만. 파일은 `apps/web/e2e/*.spec.ts`. 실행: `pnpm test:e2e`(MSW가 켜진 상태로 서버가 뜬다). 스킬: `create-e2e`.
+- Storybook: 컴포넌트 **문서용**이다. 스토리에 `play` 테스트를 쓰지 않는다(테스트는 Vitest로 통일). 실행: `pnpm --filter web storybook`.
 - **SEO 검증 (설치 없이 가능)**: `cd frontend/apps/web && pnpm build`, `pnpm start &`로 서버를 백그라운드에 띄우고 준비될 때까지 기다린 뒤(`trap`으로 종료 보장) `curl -s <URL>`의 HTML에 `<title>`, `og:title`, `og:description`, `og:image`, `twitter:card`, `canonical`, `robots`가 들어 있는지 확인한다. 비공개·무효 케이스에서 개인 정보가 응답에 없는지도 확인한다.

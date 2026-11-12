@@ -99,7 +99,8 @@ Plan은 설계 문서이므로 **선행 기능이 구현되어 있을 필요는 
 
 ## 테스트 전략
 - BE: 서비스 단위 테스트 대상
-- FE: 컴포넌트(스토리 play), E2E 대상 (AC별로 어떤 테스트가 덮는지 적는다)
+- FE-web: 컴포넌트·훅(Vitest + RTL), E2E(Playwright) 대상 (AC별로 어떤 테스트가 덮는지 적는다)
+- FE-mobile: 테스트 도구(jest-expo, Maestro)가 아직 없으므로 자동 테스트를 적지 않는다. 사람이 시뮬레이터에서 확인할 항목으로 적고 "미검증"으로 둔다 (도구 세팅은 MEO-58)
 - 자동 검증이 불가능해 사람이 확인할 AC
 
 ## Tasks
@@ -117,7 +118,8 @@ Plan은 설계 문서이므로 **선행 기능이 구현되어 있을 필요는 
 - 여러 F-ID가 함께 쓰는 코드(공용 컴포넌트, 쿼리 키·엔드포인트 상수, 공유 스키마)는 Plan당 하나의 **공통 준비 Task**(`T-{첫 F-ID}-00`)로 분리하고, 그것을 쓰는 Task의 `선행`에 적는다.
 - **FE Task는 BE Task를 선행으로 두지 않는다.** FE는 API 계약 표가 승인되면 시작하고, API가 없으면 MSW 목으로 구현한다 (`.claude/rules/frontend-web.md`). `선행` 열에는 `계약 C-1 확정`처럼 의존하는 계약 ID와 상태를 쓴다 (보류 행이면 `보류: <질문 요약>`). BE가 끝난 뒤에 할 일은 Plan 마지막의 **`실서버 연동 확인` Task**(영역 FE, `선행` = 해당 BE Task들) 하나에 모은다.
 - **MSW 구성은 저장소에서 한 번만** 둔다 (`T-{첫 F-ID}-98`, 의존성 추가는 승인 필요). Plan을 쓰기 전에 `frontend/apps/web/package.json`의 `msw`와 `docs/plans/*.md`의 `MSW 구성` Task를 확인한다.
-  - `msw`가 있거나 다른 Plan에 이미 `MSW 구성` Task가 있으면 새로 만들지 않고, MSW를 쓰는 FE Task의 `선행`에 그 Task ID를 적는다.
+  - `msw`가 이미 설치되어 있으면(MEO-38에서 구성됨) `MSW 구성` Task를 만들지 않고 `선행`에도 적지 않는다.
+  - 다른 Plan에 이미 `MSW 구성` Task가 있으면 새로 만들지 않고, MSW를 쓰는 FE Task의 `선행`에 그 Task ID를 적는다.
   - 둘 다 없고 이 Plan에 FE-web Task가 있으면 이 Plan에 `T-{첫 F-ID}-98`을 만들고, MSW를 쓰는 이 Plan의 모든 FE-web Task의 `선행`에 `T-{첫 F-ID}-98`을 적는다 (설치 전에 FE Task가 시작되지 않게).
 - 다른 Plan의 Task에 의존하면 `선행` 열에 그 Task ID를 그대로 쓴다 (예: `T-F03-02`). 가정으로 진행하는 경우 "가정 재검증" Task를 마지막에 추가한다.
 - 모든 AC는 최소 한 Task에 연결된다. 연결되지 않은 AC가 있으면 표 아래에 나열한다.

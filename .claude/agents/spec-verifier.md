@@ -23,7 +23,7 @@ tools: Read, Grep, Glob, Bash
 3. 검증 영역 안에서 변경된 부분에 해당하는 검증 명령만 실행한다 (`CLAUDE.md`의 검증 명령 표). 영역이 BE면 FE 명령을, FE면 BE 명령을 실행하지 않는다.
    - BE: `cd backend && ./gradlew spotlessCheck checkstyleMain test`
    - FE: `cd frontend && pnpm lint && pnpm check-types` (빌드가 영향받으면 `pnpm build`)
-   - FE 컴포넌트 테스트, E2E는 도구가 설치되어 있을 때만 실행한다. 없으면 미검증.
+   - FE-web 테스트: `cd frontend && pnpm test`, 웹 E2E는 `pnpm test:e2e`. 모바일 테스트 도구(jest-expo, Maestro)는 미설치이므로 모바일 테스트는 미검증.
 4. AC마다 구현 근거와 검증 근거를 찾아 판정한다.
 5. API 계약 정적 대조: 검증 영역이 한 쪽이면 그 쪽만 대조하고 반대편 칸은 `미검증(상대 영역 미완)`으로 쓴다. 대조 방법은 Plan의 계약 표(Method, Path, 요청/응답 필드, 에러 `name`)를 BE Controller·DTO·ErrorCode와 FE 호출부·Zod 스키마에서 각각 찾아 일치 여부를 본다. 이것은 코드 읽기 기반 대조이며 실행 검증이 아님을 리포트에 명시한다.
 6. Plan에 없는 변경(범위 밖 파일, 계약에 없는 필드)이 있으면 별도로 보고한다.

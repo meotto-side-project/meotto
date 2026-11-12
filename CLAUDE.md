@@ -56,8 +56,9 @@ Spec → Plan → Tasks → Linear → Implementation → Test → Verification 
 | FE 린트 | `frontend/` | `pnpm lint` |
 | FE 타입 | `frontend/` | `pnpm check-types` |
 | FE 빌드 | `frontend/` | `pnpm build` |
-| FE 컴포넌트 테스트 | `frontend/apps/web` | Storybook + Vitest (**미설치**, `create-test` 참고) |
-| FE E2E | `frontend/apps/web` | Playwright (**미설치**, `create-e2e` 참고) |
+| FE 단위·컴포넌트 테스트 | `frontend/` | `pnpm test` (Vitest + React Testing Library, `create-test` 참고) |
+| FE E2E | `frontend/` | `pnpm test:e2e` (Playwright, `create-e2e` 참고) |
+| FE Storybook 빌드 | `frontend/` | `pnpm --filter web build-storybook` (문서용, 테스트 아님) |
 
 설치되지 않은 도구는 통과로 보고하지 않는다. "미검증"으로 보고한다.
 
