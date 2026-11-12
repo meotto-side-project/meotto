@@ -4,6 +4,8 @@
 
 ## 브랜치
 
+- 작업 시작 전(분석, Plan/Spec 읽기, 브랜치 생성 포함) `git fetch origin --prune`으로 원격 상태를 먼저 받고, 현재 브랜치가 이미 머지됐거나 main보다 뒤처져 있으면 그 위에서 작업하지 않는다. 그다음 `git switch main && git pull --ff-only`로 최신화한다. 커밋하지 않은 변경이 있으면 pull 전에 사용자에게 알린다.
+- 새 작업 브랜치는 최신 main에서 만든다.
 - `main` 직접 커밋, push 금지. 모든 작업은 브랜치 → PR → 리뷰 후 사람이 머지.
 - 브랜치명: `{type}/MEO-{번호}-{kebab-설명}` (예: `feature/MEO-12-stamp-send-api`)
   - type: `feature` `fix` `refactor` `docs` `chore` `test`
