@@ -61,9 +61,9 @@ public class SecurityConfig {
 				.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
 				// Auth
-				.requestMatchers("/auth/logout").authenticated()
-				.requestMatchers("/auth/**").permitAll()
-				.requestMatchers("/members/handle-suggestion").permitAll()
+				.requestMatchers("/api/auth/logout").authenticated()
+				.requestMatchers("/api/auth/**").permitAll()
+				.requestMatchers("/api/members/handle-suggestion").permitAll()
 
 				// Admin
 				.requestMatchers("/admin/**").hasRole("ADMIN")

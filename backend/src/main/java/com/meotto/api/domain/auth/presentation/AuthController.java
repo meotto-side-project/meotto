@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -16,13 +17,14 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
+@RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
 	private final AuthService authService;
 
 	@Operation(summary = "카카오 소셜 로그인")
-	@PostMapping("/auth/kakao")
+	@PostMapping("/kakao")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void loginWithKakao(
 		@Valid
@@ -32,7 +34,7 @@ public class AuthController {
 	}
 
 	@Operation(summary = "토큰 재발급")
-	@PostMapping("/auth/reissue")
+	@PostMapping("/reissue")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void reissue(
 		@CookieValue("refresh_token")
@@ -41,7 +43,7 @@ public class AuthController {
 	}
 
 	@Operation(summary = "로그아웃")
-	@PostMapping("/auth/logout")
+	@PostMapping("/logout")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void logout(HttpServletResponse response) {
 		authService.logout(response);
