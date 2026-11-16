@@ -60,6 +60,10 @@ public class SecurityConfig {
 			.authorizeHttpRequests(auth -> auth
 				.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
+				// Auth
+				.requestMatchers("/auth/logout").authenticated()
+				.requestMatchers("/auth/**").permitAll()
+
 				// Admin
 				.requestMatchers("/admin/**").hasRole("ADMIN")
 
