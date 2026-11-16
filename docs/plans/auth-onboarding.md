@@ -41,7 +41,7 @@
 |---|---|---|---|---|---|---|---|---|
 | C-1 | POST | /api/auth/login/{provider} | 없음 | `provider`=kakao\|naver\|apple, body `{ authorizationCode }` (Apple은 `identityToken`도 허용하는 안은 제안) | 200 `{ isNewMember, memberId }` + 토큰 전달(방식 미정) | `INVALID_SOCIAL_TOKEN`(401), `UNSUPPORTED_PROVIDER`(400) | F-03 | 보류: 로그인 상태 유지 방식(토큰 전달) |
 | C-2 | GET | /members/handle-suggestion | 없음 | - | 200 `{ handle }` | - | F-03 | 확정 (경로는 기존 구현 컨벤션에 맞춰 `/api` 접두사 없이 결정) |
-| C-3 | POST | /api/members/me/signup-profile | 필요 | `{ nickname, handle, profileImageUrl? }` | 201 없음 | `HANDLE_DUPLICATED`(409), `INVALID_NICKNAME`(400), `INVALID_HANDLE`(400), `ALREADY_SIGNED_UP`(409) | F-03 | 보류: 닉네임·아이디 길이/허용 문자, 가입 실패·취소 흐름 |
+| C-3 | POST | /api/members/me/signup-profile | 필요 | `{ nickname, handle, profileImageUrl? }` | 201 없음 | `HANDLE_DUPLICATED`(409), `INVALID_NICKNAME`(400), `INVALID_HANDLE`(400), `ALREADY_SIGNED_UP`(409) | F-03 | 보류: 닉네임 길이/허용 문자, 가입 실패·취소 흐름. 아이디(handle) 규칙은 확정(3~30자, 영문/숫자/./_, 마침표 연속·시작·끝 금지) |
 | C-4 | GET | /api/share-links/{token} | 없음 | - | 200 `{ receiverId, receiverNickname }` | `SHARE_LINK_NOT_FOUND`(404), `SHARE_LINK_INVALID`(410) | F-04 | 보류: 공유 링크 형식·무효 처리 |
 
 - 공통: 응답 상태코드와 오류 형식은 backend/CLAUDE.md의 "API 응답 표준"을 따른다 (`{ name, message }`).
@@ -76,9 +76,9 @@
 | T-F03-01 | `Member` Entity·Repository·마이그레이션 (스키마 승인 필요) | BE | F-03 | backend/src/main/java/com/meotto/api/domain/member/** | 데이터 모델 승인 | cd backend && ./gradlew spotlessCheck checkstyleMain test | MEO-46 |
 | T-F03-02 | 소셜 로그인 API(카카오·네이버·Apple)와 토큰 발급 | BE | F-03 AC2 | backend/src/main/java/com/meotto/api/domain/auth/**, backend/src/main/java/com/meotto/api/global/security/** | T-F03-01, 보류: 로그인 상태 유지 방식 | cd backend && ./gradlew spotlessCheck checkstyleMain test | MEO-26 (연결) |
 | T-F03-03 | 아이디 랜덤 제안 API(C-2) | BE | F-03 | backend/src/main/java/com/meotto/api/domain/member/** | T-F03-01, 계약 C-2 확정 | cd backend && ./gradlew spotlessCheck checkstyleMain test | MEO-51 |
-| T-F03-04 | 가입 프로필 완료 API(C-3) 아이디 유일성 검증 | BE | F-03 | backend/src/main/java/com/meotto/api/domain/member/** | T-F03-01, 보류: 닉네임·아이디 길이/허용 문자 | cd backend && ./gradlew spotlessCheck checkstyleMain test | MEO-52 |
+| T-F03-04 | 가입 프로필 완료 API(C-3) 아이디 유일성 검증 | BE | F-03 | backend/src/main/java/com/meotto/api/domain/member/** | T-F03-01, 보류: 닉네임 길이/허용 문자 | cd backend && ./gradlew spotlessCheck checkstyleMain test | MEO-52 |
 | T-F03-05 | 로그인 화면(3개 소셜 버튼)과 로그인 성공 후 홈 이동 | FE-web | F-03 AC2 | frontend/apps/web/src/app/login/**, frontend/apps/web/src/components/features/auth/** | T-F01-98, 보류: 로그인 상태 유지 방식 | cd frontend && pnpm lint && pnpm check-types. 수동 확인: MSW 목 | MEO-54 |
-| T-F03-06 | 신규 가입 프로필 입력 화면(닉네임, 아이디 placeholder, 사진 선택) | FE-web | F-03 | frontend/apps/web/src/app/signup/**, frontend/apps/web/src/components/features/auth/** | T-F01-98, T-F03-05, 보류: 닉네임·아이디 제한, 가입 실패 흐름 | cd frontend && pnpm lint && pnpm check-types. 수동 확인: MSW 목 | MEO-57 |
+| T-F03-06 | 신규 가입 프로필 입력 화면(닉네임, 아이디 placeholder, 사진 선택) | FE-web | F-03 | frontend/apps/web/src/app/signup/**, frontend/apps/web/src/components/features/auth/** | T-F01-98, T-F03-05, 보류: 닉네임 제한, 가입 실패 흐름 | cd frontend && pnpm lint && pnpm check-types. 수동 확인: MSW 목 | MEO-57 |
 | T-F03-07 | 소셜 SDK 연동과 토큰 보관 브리지 | FE-mobile | F-03 | frontend/apps/mobile/src/** | 보류: 로그인 상태 유지 방식 | 수동 확인: 실기기. cd frontend && pnpm lint && pnpm check-types | MEO-47 |
 | T-F04-01 | 공유 링크 해석 API(C-4)와 `ShareLink` Entity | BE | F-04 AC3 | backend/src/main/java/com/meotto/api/domain/sharelink/** | T-F03-01, 보류: 공유 링크 형식·무효 처리 | cd backend && ./gradlew spotlessCheck checkstyleMain test | MEO-53 |
 | T-F04-02 | 공유 링크 진입 라우트에서 토마토 보내기(F-24)로 이동 | FE-web | F-04 AC3 | frontend/apps/web/src/app/(public)/** | T-F01-98, 보류: 공유 링크 형식 | cd frontend && pnpm lint && pnpm check-types. 수동 확인: MSW 목 | MEO-55 |
@@ -90,7 +90,7 @@ AC 연결: F-02 AC1 → T-F02-01. F-03 AC2 → T-F03-02, T-F03-05. F-04 AC3 → 
 ## 보류 질문
 - 로그인 상태 유지 방식과 토큰 보관 위치 (Spec Open Questions 1)
 - 스플래시 이후 분기 조건(로그인·온보딩 본 여부)
-- 닉네임·아이디 길이와 허용 문자, 사진 업로드 방식 (`mypage-settings`와 공유)
+- 닉네임 길이와 허용 문자, 사진 업로드 방식 (`mypage-settings`와 공유). 아이디(handle) 규칙은 확정됨: 3~30자, 영문(대소문자)/숫자/마침표(`.`)/언더스코어(`_`), 마침표 연속·시작·끝 금지 (인스타그램 아이디 형식 참고, DB는 `utf8mb4_unicode_ci`로 대소문자 구분 없이 유일성 검사)
 - 로그인 취소·실패·소셜 계정 통합 여부
 - 공유 링크 형식, 무효·만료 처리, 앱 설치 감지 방식
 - 비회원 보내는 사람 이름 설정 여부 (Spec Open Questions 2)
