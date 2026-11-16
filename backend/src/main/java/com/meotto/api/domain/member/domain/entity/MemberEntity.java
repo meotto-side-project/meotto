@@ -1,8 +1,11 @@
 package com.meotto.api.domain.member.domain.entity;
 
+import java.time.LocalDateTime;
+
 import com.meotto.api.domain.member.domain.model.Member;
 import com.meotto.api.domain.member.domain.model.enums.MemberRole;
 import com.meotto.api.domain.member.domain.model.enums.OAuthProvider;
+import com.meotto.api.domain.member.domain.model.enums.SentPraiseVisibility;
 import com.meotto.api.global.common.entity.BaseEntity;
 
 import jakarta.persistence.Column;
@@ -17,7 +20,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "member", uniqueConstraints = @UniqueConstraint(columnNames = {"provider", "provider_id"}))
+@Table(name = "member", uniqueConstraints = {
+	@UniqueConstraint(columnNames = {"provider", "provider_id"}),
+	@UniqueConstraint(columnNames = {"handle"})
+})
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -28,6 +34,22 @@ public class MemberEntity extends BaseEntity {
 
 	@Column(name = "profile_image_url", nullable = true)
 	private String profileImageUrl;
+
+	@Column(nullable = true)
+	private String handle;
+
+	@Column(name = "notification_enabled", nullable = true)
+	private Boolean notificationEnabled;
+
+	@Column(name = "board_public", nullable = true)
+	private Boolean boardPublic;
+
+	@Column(name = "sent_praise_visibility", nullable = false)
+	@Enumerated(EnumType.STRING)
+	private SentPraiseVisibility sentPraiseVisibility;
+
+	@Column(name = "last_active_at", nullable = true)
+	private LocalDateTime lastActiveAt;
 
 	@Column(nullable = false)
 	@Enumerated(EnumType.STRING)
@@ -42,11 +64,32 @@ public class MemberEntity extends BaseEntity {
 
 	public static MemberEntity from(Member model) {
 		return new MemberEntity(
-			model.nickname(), model.profileImageUrl(), model.provider(), model.providerId(), model.role());
+			model.nickname(),
+			model.profileImageUrl(),
+			model.handle(),
+			model.notificationEnabled(),
+			model.boardPublic(),
+			model.sentPraiseVisibility(),
+			model.lastActiveAt(),
+			model.provider(),
+			model.providerId(),
+			model.role());
 	}
 
 	public Member toModel() {
 		return new Member(
-			getId(), nickname, profileImageUrl, provider, providerId, role, getCreatedAt(), getUpdatedAt());
+			getId(),
+			nickname,
+			profileImageUrl,
+			handle,
+			notificationEnabled,
+			boardPublic,
+			sentPraiseVisibility,
+			lastActiveAt,
+			provider,
+			providerId,
+			role,
+			getCreatedAt(),
+			getUpdatedAt());
 	}
 }
