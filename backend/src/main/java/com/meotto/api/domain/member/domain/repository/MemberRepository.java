@@ -13,6 +13,8 @@ public interface MemberRepository extends JpaRepository<MemberEntity, Long> {
 
 	Optional<MemberEntity> findByIdAndDeletedAtIsNull(Long id);
 
+	boolean existsByHandle(String handle);
+
 	@Query("SELECT m FROM MemberEntity m WHERE m.provider = :provider "
 		+ "AND m.providerId = :providerId AND m.deletedAt IS NULL")
 	Optional<MemberEntity> findByProviderAndProviderId(

@@ -40,7 +40,7 @@
 | ID | Method | Path | 인증 | Request | Response | 에러(name) | F-ID | 상태 |
 |---|---|---|---|---|---|---|---|---|
 | C-1 | POST | /api/auth/login/{provider} | 없음 | `provider`=kakao\|naver\|apple, body `{ authorizationCode }` (Apple은 `identityToken`도 허용하는 안은 제안) | 200 `{ isNewMember, memberId }` + 토큰 전달(방식 미정) | `INVALID_SOCIAL_TOKEN`(401), `UNSUPPORTED_PROVIDER`(400) | F-03 | 보류: 로그인 상태 유지 방식(토큰 전달) |
-| C-2 | GET | /api/members/handle-suggestion | 없음 | - | 200 `{ handle }` | - | F-03 | 확정 |
+| C-2 | GET | /members/handle-suggestion | 없음 | - | 200 `{ handle }` | - | F-03 | 확정 (경로는 기존 구현 컨벤션에 맞춰 `/api` 접두사 없이 결정) |
 | C-3 | POST | /api/members/me/signup-profile | 필요 | `{ nickname, handle, profileImageUrl? }` | 201 없음 | `HANDLE_DUPLICATED`(409), `INVALID_NICKNAME`(400), `INVALID_HANDLE`(400), `ALREADY_SIGNED_UP`(409) | F-03 | 보류: 닉네임·아이디 길이/허용 문자, 가입 실패·취소 흐름 |
 | C-4 | GET | /api/share-links/{token} | 없음 | - | 200 `{ receiverId, receiverNickname }` | `SHARE_LINK_NOT_FOUND`(404), `SHARE_LINK_INVALID`(410) | F-04 | 보류: 공유 링크 형식·무효 처리 |
 

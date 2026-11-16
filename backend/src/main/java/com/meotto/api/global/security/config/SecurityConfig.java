@@ -63,6 +63,7 @@ public class SecurityConfig {
 				// Auth
 				.requestMatchers("/auth/logout").authenticated()
 				.requestMatchers("/auth/**").permitAll()
+				.requestMatchers("/members/handle-suggestion").permitAll()
 
 				// Admin
 				.requestMatchers("/admin/**").hasRole("ADMIN")
