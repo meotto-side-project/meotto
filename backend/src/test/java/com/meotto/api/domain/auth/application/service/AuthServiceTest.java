@@ -23,7 +23,9 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import com.meotto.api.domain.auth.domain.repository.RefreshTokenRepository;
 import com.meotto.api.domain.auth.exception.AuthErrorCode;
+import com.meotto.api.domain.auth.infrastructure.client.AppleApiClient;
 import com.meotto.api.domain.auth.infrastructure.client.KakaoApiClient;
+import com.meotto.api.domain.auth.infrastructure.dto.AppleUserInfo;
 import com.meotto.api.domain.auth.infrastructure.dto.KakaoUserInfo;
 import com.meotto.api.domain.member.domain.entity.MemberEntity;
 import com.meotto.api.domain.member.domain.model.Member;
@@ -47,6 +49,8 @@ class AuthServiceTest {
 
 	@Mock
 	private KakaoApiClient kakaoApiClient;
+	@Mock
+	private AppleApiClient appleApiClient;
 	@Mock
 	private MemberRepository memberRepository;
 	@Mock
@@ -109,6 +113,50 @@ class AuthServiceTest {
 
 		verify(memberRepository, never()).save(any());
 		verify(refreshTokenRepository).save(1L, "refresh-token");
+	}
+
+	@Test
+	void loginWithApple_신규유저면_유저를_생성하고_토큰을_발급한다() {
+		AppleUserInfo appleUserInfo = new AppleUserInfo("apple-sub-123");
+		when(appleApiClient.verifyIdentityToken("identity-token")).thenReturn(appleUserInfo);
+		when(memberRepository.findByProviderAndProviderId(OAuthProvider.APPLE, "apple-sub-123"))
+			.thenReturn(Optional.empty());
+
+		MemberEntity savedEntity = MemberEntity.from(
+			Member.create("Apple 사용자", null, OAuthProvider.APPLE, "apple-sub-123"));
+		ReflectionTestUtils.setField(savedEntity, "id", 2L);
+		when(memberRepository.save(any())).thenReturn(savedEntity);
+
+		when(jwtTokenProvider.createAccessToken(2L, "USER")).thenReturn("access-token");
+		when(jwtTokenProvider.createRefreshToken(2L)).thenReturn("refresh-token");
+
+		authService.loginWithApple("identity-token", response);
+
+		ArgumentCaptor<MemberEntity> savedCaptor = ArgumentCaptor.forClass(MemberEntity.class);
+		verify(memberRepository, times(1)).save(savedCaptor.capture());
+		assertThat(savedCaptor.getValue().getNickname()).isEqualTo("Apple 사용자");
+		assertThat(savedCaptor.getValue().getProvider()).isEqualTo(OAuthProvider.APPLE);
+		verify(refreshTokenRepository).save(2L, "refresh-token");
+	}
+
+	@Test
+	void loginWithApple_기존유저면_유저를_재사용하고_토큰만_발급한다() {
+		AppleUserInfo appleUserInfo = new AppleUserInfo("apple-sub-123");
+		when(appleApiClient.verifyIdentityToken("identity-token")).thenReturn(appleUserInfo);
+
+		MemberEntity existingEntity = MemberEntity.from(
+			Member.create("Apple 사용자", null, OAuthProvider.APPLE, "apple-sub-123"));
+		ReflectionTestUtils.setField(existingEntity, "id", 2L);
+		when(memberRepository.findByProviderAndProviderId(OAuthProvider.APPLE, "apple-sub-123"))
+			.thenReturn(Optional.of(existingEntity));
+
+		when(jwtTokenProvider.createAccessToken(2L, "USER")).thenReturn("access-token");
+		when(jwtTokenProvider.createRefreshToken(2L)).thenReturn("refresh-token");
+
+		authService.loginWithApple("identity-token", response);
+
+		verify(memberRepository, never()).save(any());
+		verify(refreshTokenRepository).save(2L, "refresh-token");
 	}
 
 	@Test
