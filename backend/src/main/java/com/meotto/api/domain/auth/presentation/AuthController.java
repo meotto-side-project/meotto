@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.meotto.api.domain.auth.application.service.AuthService;
+import com.meotto.api.domain.auth.presentation.request.AppleLoginRequest;
 import com.meotto.api.domain.auth.presentation.request.KakaoLoginRequest;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,6 +32,16 @@ public class AuthController {
 		@RequestBody
 		KakaoLoginRequest request, HttpServletResponse response) {
 		authService.loginWithKakao(request.accessToken(), response);
+	}
+
+	@Operation(summary = "애플 소셜 로그인")
+	@PostMapping("/apple")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void loginWithApple(
+		@Valid
+		@RequestBody
+		AppleLoginRequest request, HttpServletResponse response) {
+		authService.loginWithApple(request.identityToken(), response);
 	}
 
 	@Operation(summary = "토큰 재발급")

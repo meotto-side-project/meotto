@@ -5,7 +5,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.meotto.api.domain.auth.domain.repository.RefreshTokenRepository;
 import com.meotto.api.domain.auth.exception.AuthErrorCode;
+import com.meotto.api.domain.auth.infrastructure.client.AppleApiClient;
 import com.meotto.api.domain.auth.infrastructure.client.KakaoApiClient;
+import com.meotto.api.domain.auth.infrastructure.dto.AppleUserInfo;
 import com.meotto.api.domain.auth.infrastructure.dto.KakaoUserInfo;
 import com.meotto.api.domain.member.domain.entity.MemberEntity;
 import com.meotto.api.domain.member.domain.model.Member;
@@ -27,7 +29,10 @@ import lombok.RequiredArgsConstructor;
 @Transactional
 public class AuthService {
 
+	private static final String DEFAULT_APPLE_NICKNAME = "Apple 사용자";
+
 	private final KakaoApiClient kakaoApiClient;
+	private final AppleApiClient appleApiClient;
 	private final MemberRepository memberRepository;
 	private final RefreshTokenRepository refreshTokenRepository;
 	private final JwtTokenProvider jwtTokenProvider;
@@ -36,7 +41,16 @@ public class AuthService {
 
 	public void loginWithKakao(String kakaoAccessToken, HttpServletResponse response) {
 		KakaoUserInfo kakaoUserInfo = kakaoApiClient.getUserInfo(kakaoAccessToken);
-		Member member = getOrCreateMember(kakaoUserInfo);
+		Member member = getOrCreateMember(
+			OAuthProvider.KAKAO, kakaoUserInfo.providerId(), kakaoUserInfo.nickname(),
+			kakaoUserInfo.profileImageUrl());
+		issueTokens(member.id(), member.role().name(), response);
+	}
+
+	public void loginWithApple(String identityToken, HttpServletResponse response) {
+		AppleUserInfo appleUserInfo = appleApiClient.verifyIdentityToken(identityToken);
+		Member member = getOrCreateMember(
+			OAuthProvider.APPLE, appleUserInfo.providerId(), DEFAULT_APPLE_NICKNAME, null);
 		issueTokens(member.id(), member.role().name(), response);
 	}
 
@@ -62,12 +76,12 @@ public class AuthService {
 		cookieUtil.deleteCookies(response);
 	}
 
-	private Member getOrCreateMember(KakaoUserInfo info) {
-		return memberRepository.findByProviderAndProviderId(OAuthProvider.KAKAO, info.providerId())
+	private Member getOrCreateMember(
+		OAuthProvider provider, String providerId, String nickname, String profileImageUrl) {
+		return memberRepository.findByProviderAndProviderId(provider, providerId)
 			.map(MemberEntity::toModel)
 			.orElseGet(() -> {
-				Member newMember = Member.create(
-					info.nickname(), info.profileImageUrl(), OAuthProvider.KAKAO, info.providerId());
+				Member newMember = Member.create(nickname, profileImageUrl, provider, providerId);
 				return memberRepository.save(MemberEntity.from(newMember)).toModel();
 			});
 	}
