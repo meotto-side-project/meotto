@@ -31,7 +31,7 @@ Plan 승인 전에 정하면 보류 Task가 풀린다. 상세는 각 Plan의 "�
 
 | 영역 | 질문 | 막는 Plan / Task |
 |---|---|---|
-| 인증 | 로그인 상태 유지 방식, 스플래시 분기 | auth-onboarding T-F01-01, T-F03-02, T-F03-05~07, mypage-settings T-F44-01~02 |
+| 인증 | 로그인 상태 유지 방식(네이티브 보관 전략), 스플래시 분기. 백엔드 토큰 전달 방식은 확정: `access_token`/`refresh_token` HttpOnly 쿠키, 응답 본문 없음 | auth-onboarding T-F01-01, T-F03-05~07, mypage-settings T-F44-01~02 |
 | 인증 | 닉네임 제한, 가입 실패·계정 통합 (아이디(handle) 규칙은 확정: 3~30자, 영문/숫자/./_, 인스타그램 형식) | auth-onboarding T-F03-04, T-F03-06, mypage-settings T-F40-02~03 |
 | 공유 링크 | 형식, 무효·만료, 앱 설치 감지, 비회원 남용 방지·이름 | auth-onboarding T-F04-01~03, mypage-settings T-F41-01~02, send-stamp T-F24-01~02, home T-F16-01~02 |
 | 공개 정책 | `보낸 칭찬 공개` 보는 사람별 적용·숨기는 범위, 제한 화면 노출, 본인 열람 | mypage-settings T-F43-02, friends T-F53-02, T-F53-04, my-board T-F34-01~02 |

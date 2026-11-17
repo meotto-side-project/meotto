@@ -9,6 +9,7 @@ import com.meotto.api.domain.auth.infrastructure.client.AppleApiClient;
 import com.meotto.api.domain.auth.infrastructure.client.KakaoApiClient;
 import com.meotto.api.domain.auth.infrastructure.dto.AppleUserInfo;
 import com.meotto.api.domain.auth.infrastructure.dto.KakaoUserInfo;
+import com.meotto.api.domain.auth.presentation.response.LoginResponse;
 import com.meotto.api.domain.member.domain.entity.MemberEntity;
 import com.meotto.api.domain.member.domain.model.Member;
 import com.meotto.api.domain.member.domain.model.enums.OAuthProvider;
@@ -39,19 +40,21 @@ public class AuthService {
 	private final JwtTokenExtractor jwtTokenExtractor;
 	private final CookieUtil cookieUtil;
 
-	public void loginWithKakao(String kakaoAccessToken, HttpServletResponse response) {
+	public LoginResponse loginWithKakao(String kakaoAccessToken, HttpServletResponse response) {
 		KakaoUserInfo kakaoUserInfo = kakaoApiClient.getUserInfo(kakaoAccessToken);
-		Member member = getOrCreateMember(
+		MemberResolution resolution = getOrCreateMember(
 			OAuthProvider.KAKAO, kakaoUserInfo.providerId(), kakaoUserInfo.nickname(),
 			kakaoUserInfo.profileImageUrl());
-		issueTokens(member.id(), member.role().name(), response);
+		issueTokens(resolution.member().id(), resolution.member().role().name(), response);
+		return new LoginResponse(resolution.isNewMember(), resolution.member().id());
 	}
 
-	public void loginWithApple(String identityToken, HttpServletResponse response) {
+	public LoginResponse loginWithApple(String identityToken, HttpServletResponse response) {
 		AppleUserInfo appleUserInfo = appleApiClient.verifyIdentityToken(identityToken);
-		Member member = getOrCreateMember(
+		MemberResolution resolution = getOrCreateMember(
 			OAuthProvider.APPLE, appleUserInfo.providerId(), DEFAULT_APPLE_NICKNAME, null);
-		issueTokens(member.id(), member.role().name(), response);
+		issueTokens(resolution.member().id(), resolution.member().role().name(), response);
+		return new LoginResponse(resolution.isNewMember(), resolution.member().id());
 	}
 
 	public void reissue(String refreshToken, HttpServletResponse response) {
@@ -76,13 +79,14 @@ public class AuthService {
 		cookieUtil.deleteCookies(response);
 	}
 
-	private Member getOrCreateMember(
+	private MemberResolution getOrCreateMember(
 		OAuthProvider provider, String providerId, String nickname, String profileImageUrl) {
 		return memberRepository.findByProviderAndProviderId(provider, providerId)
-			.map(MemberEntity::toModel)
+			.map(entity -> new MemberResolution(entity.toModel(), false))
 			.orElseGet(() -> {
 				Member newMember = Member.create(nickname, profileImageUrl, provider, providerId);
-				return memberRepository.save(MemberEntity.from(newMember)).toModel();
+				Member saved = memberRepository.save(MemberEntity.from(newMember)).toModel();
+				return new MemberResolution(saved, true);
 			});
 	}
 
@@ -94,5 +98,8 @@ public class AuthService {
 
 		cookieUtil.addAccessTokenCookie(response, accessToken);
 		cookieUtil.addRefreshTokenCookie(response, refreshToken);
+	}
+
+	private record MemberResolution(Member member, boolean isNewMember) {
 	}
 }
