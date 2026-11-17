@@ -27,6 +27,7 @@ import com.meotto.api.domain.auth.infrastructure.client.AppleApiClient;
 import com.meotto.api.domain.auth.infrastructure.client.KakaoApiClient;
 import com.meotto.api.domain.auth.infrastructure.dto.AppleUserInfo;
 import com.meotto.api.domain.auth.infrastructure.dto.KakaoUserInfo;
+import com.meotto.api.domain.auth.presentation.response.LoginResponse;
 import com.meotto.api.domain.member.domain.entity.MemberEntity;
 import com.meotto.api.domain.member.domain.model.Member;
 import com.meotto.api.domain.member.domain.model.enums.OAuthProvider;
@@ -82,7 +83,7 @@ class AuthServiceTest {
 		when(jwtTokenProvider.createAccessToken(1L, "USER")).thenReturn("access-token");
 		when(jwtTokenProvider.createRefreshToken(1L)).thenReturn("refresh-token");
 
-		authService.loginWithKakao("kakao-access-token", response);
+		LoginResponse loginResponse = authService.loginWithKakao("kakao-access-token", response);
 
 		ArgumentCaptor<MemberEntity> savedCaptor = ArgumentCaptor.forClass(MemberEntity.class);
 		verify(memberRepository, times(1)).save(savedCaptor.capture());
@@ -90,6 +91,8 @@ class AuthServiceTest {
 		verify(refreshTokenRepository).save(1L, "refresh-token");
 		verify(cookieUtil).addAccessTokenCookie(response, "access-token");
 		verify(cookieUtil).addRefreshTokenCookie(response, "refresh-token");
+		assertThat(loginResponse.isNewMember()).isTrue();
+		assertThat(loginResponse.memberId()).isEqualTo(1L);
 	}
 
 	@Test
@@ -109,10 +112,12 @@ class AuthServiceTest {
 		when(jwtTokenProvider.createAccessToken(1L, "USER")).thenReturn("access-token");
 		when(jwtTokenProvider.createRefreshToken(1L)).thenReturn("refresh-token");
 
-		authService.loginWithKakao("kakao-access-token", response);
+		LoginResponse loginResponse = authService.loginWithKakao("kakao-access-token", response);
 
 		verify(memberRepository, never()).save(any());
 		verify(refreshTokenRepository).save(1L, "refresh-token");
+		assertThat(loginResponse.isNewMember()).isFalse();
+		assertThat(loginResponse.memberId()).isEqualTo(1L);
 	}
 
 	@Test
@@ -130,13 +135,15 @@ class AuthServiceTest {
 		when(jwtTokenProvider.createAccessToken(2L, "USER")).thenReturn("access-token");
 		when(jwtTokenProvider.createRefreshToken(2L)).thenReturn("refresh-token");
 
-		authService.loginWithApple("identity-token", response);
+		LoginResponse loginResponse = authService.loginWithApple("identity-token", response);
 
 		ArgumentCaptor<MemberEntity> savedCaptor = ArgumentCaptor.forClass(MemberEntity.class);
 		verify(memberRepository, times(1)).save(savedCaptor.capture());
 		assertThat(savedCaptor.getValue().getNickname()).isEqualTo("Apple 사용자");
 		assertThat(savedCaptor.getValue().getProvider()).isEqualTo(OAuthProvider.APPLE);
 		verify(refreshTokenRepository).save(2L, "refresh-token");
+		assertThat(loginResponse.isNewMember()).isTrue();
+		assertThat(loginResponse.memberId()).isEqualTo(2L);
 	}
 
 	@Test
@@ -153,10 +160,12 @@ class AuthServiceTest {
 		when(jwtTokenProvider.createAccessToken(2L, "USER")).thenReturn("access-token");
 		when(jwtTokenProvider.createRefreshToken(2L)).thenReturn("refresh-token");
 
-		authService.loginWithApple("identity-token", response);
+		LoginResponse loginResponse = authService.loginWithApple("identity-token", response);
 
 		verify(memberRepository, never()).save(any());
 		verify(refreshTokenRepository).save(2L, "refresh-token");
+		assertThat(loginResponse.isNewMember()).isFalse();
+		assertThat(loginResponse.memberId()).isEqualTo(2L);
 	}
 
 	@Test

@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.meotto.api.domain.auth.application.service.AuthService;
 import com.meotto.api.domain.auth.presentation.request.AppleLoginRequest;
 import com.meotto.api.domain.auth.presentation.request.KakaoLoginRequest;
+import com.meotto.api.domain.auth.presentation.response.LoginResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletResponse;
@@ -26,22 +27,20 @@ public class AuthController {
 
 	@Operation(summary = "카카오 소셜 로그인")
 	@PostMapping("/kakao")
-	@ResponseStatus(HttpStatus.NO_CONTENT)
-	public void loginWithKakao(
+	public LoginResponse loginWithKakao(
 		@Valid
 		@RequestBody
 		KakaoLoginRequest request, HttpServletResponse response) {
-		authService.loginWithKakao(request.accessToken(), response);
+		return authService.loginWithKakao(request.accessToken(), response);
 	}
 
 	@Operation(summary = "애플 소셜 로그인")
 	@PostMapping("/apple")
-	@ResponseStatus(HttpStatus.NO_CONTENT)
-	public void loginWithApple(
+	public LoginResponse loginWithApple(
 		@Valid
 		@RequestBody
 		AppleLoginRequest request, HttpServletResponse response) {
-		authService.loginWithApple(request.identityToken(), response);
+		return authService.loginWithApple(request.identityToken(), response);
 	}
 
 	@Operation(summary = "토큰 재발급")

@@ -17,9 +17,9 @@
 - 없음. 이 Plan 작성 시 사용자가 답한 질문은 없고, 아래 "보류 질문"은 모두 보류로 둔다.
 
 ## 기술 설계
-- 인증의 중심은 `Member`다. 소셜 로그인(카카오·네이버·Apple)으로 가입과 로그인을 한 엔드포인트(`C-1`)에서 처리하고, 응답의 `isNewMember`로 프로필 입력 화면 진입 여부를 가른다. 신규 회원은 `C-3`으로 프로필을 완료해야 가입이 끝난다.
+- 인증의 중심은 `Member`다. 소셜 로그인(카카오·Apple, 네이버는 검수 대기로 보류)으로 가입과 로그인을 처리하고, 응답의 `isNewMember`로 프로필 입력 화면 진입 여부를 가른다. 신규 회원은 `C-3`으로 프로필을 완료해야 가입이 끝난다.
 - 아이디(`@아이디`) 랜덤 제안은 가입 전에 호출되는 `C-2`가 담당한다. 아이디 유일성은 `C-3`에서 DB 유니크 제약과 서비스 검증으로 보장한다.
-- 로그인 상태를 어디에 보관할지(웹뷰 쿠키 vs 네이티브 보안 저장소)는 Spec의 미해결 질문이다. `global/security/jwt`, `cookie`가 이미 있으므로 이를 쓰되, 토큰 전달 방식은 확정 전까지 `C-1` 응답에서 비워 두고 해당 Task를 보류한다.
+- **토큰 전달 방식 확정**: `access_token`/`refresh_token` 둘 다 HttpOnly·Secure·SameSite=None 쿠키로 전달한다. 응답 본문에는 토큰 값이 들어가지 않는다 (`global/security/jwt`, `cookie` 기존 구현 그대로). `httpOnly` 쿠키는 클라이언트 JS/네이티브가 값을 직접 읽을 수 없으므로, 네이티브 보안 저장소로 토큰 "값"을 옮기는 방식은 애초에 불가능하다 — 네이티브 쪽은 웹뷰의 쿠키 저장소가 요청마다 자동으로 쿠키를 붙이는 것에 의존하게 된다. 로그인 상태를 어디에 "보관"할지(웹뷰 쿠키 vs 네이티브 보안 저장소)는 이 제약을 반영해 FE가 다시 검토해야 하는 Spec의 미해결 질문으로 남긴다.
 - 스플래시는 웹뷰가 뜨기 전에 보여야 하므로 네이티브(`FE-mobile`)다. 온보딩·로그인 화면은 웹(`FE-web`)이다. 공유 링크 진입(F-04)은 일반 브라우저에서도 열려야 하므로 웹이다.
 - 앱 설치 여부 분기, 딥링크 처리는 네이티브 몫이다(`T-F04-03`).
 
@@ -39,7 +39,7 @@
 ## API 계약
 | ID | Method | Path | 인증 | Request | Response | 에러(name) | F-ID | 상태 |
 |---|---|---|---|---|---|---|---|---|
-| C-1 | POST | /api/auth/login/{provider} | 없음 | `provider`=kakao\|naver\|apple, body `{ authorizationCode }` (Apple은 `identityToken`도 허용하는 안은 제안) | 200 `{ isNewMember, memberId }` + 토큰 전달(방식 미정) | `INVALID_SOCIAL_TOKEN`(401), `UNSUPPORTED_PROVIDER`(400) | F-03 | 보류: 로그인 상태 유지 방식(토큰 전달) |
+| C-1 | POST | `/api/auth/kakao` body `{ accessToken }` (카카오) / `/api/auth/apple` body `{ identityToken }` (애플) | 없음 | provider별 엔드포인트로 분리 구현 (범용 `/api/auth/login/{provider}` 안은 폐기). 네이버는 검수 대기라 보류 | 200 `{ isNewMember, memberId }`. 토큰은 응답 본문에 없고 `access_token`/`refresh_token` HttpOnly 쿠키로 전달 | `INVALID_KAKAO_TOKEN`(401) / `INVALID_APPLE_TOKEN`(401) | F-03 | 확정 (구현 기준으로 Plan 반영, FE 확인 완료) |
 | C-2 | GET | /api/members/handle-suggestion | 없음 | - | 200 `{ handle }` | - | F-03 | 확정 |
 | C-3 | POST | /api/members/me/signup-profile | 필요 | `{ nickname, handle, profileImageUrl? }` | 201 없음 | `HANDLE_DUPLICATED`(409), `INVALID_NICKNAME`(400), `INVALID_HANDLE`(400), `ALREADY_SIGNED_UP`(409) | F-03 | 보류: 닉네임 길이/허용 문자, 가입 실패·취소 흐름. 아이디(handle) 규칙은 확정(3~30자, 영문/숫자/./_, 마침표 연속·시작·끝 금지) |
 | C-4 | GET | /api/share-links/{token} | 없음 | - | 200 `{ receiverId, receiverNickname }` | `SHARE_LINK_NOT_FOUND`(404), `SHARE_LINK_INVALID`(410) | F-04 | 보류: 공유 링크 형식·무효 처리 |
@@ -51,7 +51,7 @@
 ## 웹뷰 브리지 메시지 계약
 | 방향 | type | payload | 용도 | 상태 |
 |---|---|---|---|---|
-| 웹 → 네이티브 | `AUTH_LOGIN_SUCCESS` | `{ ... }` | 로그인 성공 알림, 토큰 보관 요청 | 보류: 로그인 상태 유지 방식 |
+| 웹 → 네이티브 | `AUTH_LOGIN_SUCCESS` | `{ ... }` | 로그인 성공 알림. **주의**: 토큰이 HttpOnly 쿠키라 웹뷰 JS가 토큰 값 자체를 읽어 payload에 넣을 수 없음 — "토큰 보관 요청"이 아니라 "로그인 성공 사실"만 알리는 용도로 재검토 필요 | 보류: 로그인 상태 유지 방식 |
 | 네이티브 → 웹 | `AUTH_STATE` | `{ loggedIn }` | 시작 시 로그인 상태 전달 | 보류: 로그인 상태 유지 방식 |
 
 ## 구현 순서와 의존성
@@ -74,7 +74,7 @@
 | T-F01-98 | MSW 구성: 별도 구현 없음. `msw` 설치와 `NEXT_PUBLIC_API_MOCKING` 구성은 MEO-38(PR #25)에서 한다 | FE-web | - | - | T-F01-00 | MEO-38 머지로 대체. 인증 API 핸들러(`handlers/auth.ts`)는 각 FE Task가 계약 표 기준으로 만든다 | MEO-38 (연결) |
 | T-F02-01 | 온보딩 3장 슬라이드(인디케이터, 카피, 마지막 장 `멋토 시작하기`) | FE-web | F-02 AC1 | frontend/apps/web/src/app/onboarding/**, frontend/apps/web/src/components/features/onboarding/** | T-F01-00 | cd frontend && pnpm lint && pnpm check-types. AC는 수동 확인(스토리 도구 미설치) | MEO-50 |
 | T-F03-01 | `Member` Entity·Repository·마이그레이션 (스키마 승인 필요) | BE | F-03 | backend/src/main/java/com/meotto/api/domain/member/** | 데이터 모델 승인 | cd backend && ./gradlew spotlessCheck checkstyleMain test | MEO-46 |
-| T-F03-02 | 소셜 로그인 API(카카오·네이버·Apple)와 토큰 발급 | BE | F-03 AC2 | backend/src/main/java/com/meotto/api/domain/auth/**, backend/src/main/java/com/meotto/api/global/security/** | T-F03-01, 보류: 로그인 상태 유지 방식 | cd backend && ./gradlew spotlessCheck checkstyleMain test | MEO-26 (연결) |
+| T-F03-02 | 소셜 로그인 API(카카오·Apple)와 토큰 발급 | BE | F-03 AC2 | backend/src/main/java/com/meotto/api/domain/auth/**, backend/src/main/java/com/meotto/api/global/security/** | T-F03-01 | cd backend && ./gradlew spotlessCheck checkstyleMain test | MEO-26 (연결, 완료) |
 | T-F03-03 | 아이디 랜덤 제안 API(C-2) | BE | F-03 | backend/src/main/java/com/meotto/api/domain/member/** | T-F03-01, 계약 C-2 확정 | cd backend && ./gradlew spotlessCheck checkstyleMain test | MEO-51 |
 | T-F03-04 | 가입 프로필 완료 API(C-3) 아이디 유일성 검증 | BE | F-03 | backend/src/main/java/com/meotto/api/domain/member/** | T-F03-01, 보류: 닉네임 길이/허용 문자 | cd backend && ./gradlew spotlessCheck checkstyleMain test | MEO-52 |
 | T-F03-05 | 로그인 화면(3개 소셜 버튼)과 로그인 성공 후 홈 이동 | FE-web | F-03 AC2 | frontend/apps/web/src/app/login/**, frontend/apps/web/src/components/features/auth/** | T-F01-98, 보류: 로그인 상태 유지 방식 | cd frontend && pnpm lint && pnpm check-types. 수동 확인: MSW 목 | MEO-54 |
