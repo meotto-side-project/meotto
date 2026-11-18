@@ -3,7 +3,7 @@
 - Spec: docs/specs/mypage-settings.md
 - F-ID: F-40 ~ F-45
 - 상태: approved
-- 선행 Plan: `auth-onboarding`(F-03) 하드 / `auth-onboarding`(F-04), `my-board`, `friends`(F-53)·`send-stamp`(stamp 도메인) 소프트
+- 선행 Plan: `auth-onboarding`(F-03) 하드 / `auth-onboarding`(F-04), `my-board`, `stamp·friend 도메인` 소프트
 - Linear 상위 이슈: FE MEO-64, BE MEO-65
 
 ## 선행 Plan과 가정
@@ -11,8 +11,8 @@
 |---|---|---|---|
 | auth-onboarding (F-03) | 하드 | approved, 일부 구현됨 | `Member` Entity와 `member` 테이블(닉네임, 아이디, 사진, 설정 컬럼)이 이미 구현되어 있다(`domain/member/domain/model/Member.java`, `V1__init_member.sql`: nickname, handle, profileImageUrl, notificationEnabled, boardPublic, sentPraiseVisibility 모두 존재). 로그인된 사용자는 `SecurityUtil.getCurrentUserId()`로 얻는다(구현됨). 웹 공통 준비 `T-F01-00`, MSW `T-F01-98`이 있다 |
 | auth-onboarding (F-04) | 소프트 | approved, 코드 미구현(`domain/sharelink` 없음) | 공유 링크 해석 계약 `auth-onboarding` C-4를 F-41이 재사용한다(코드가 아직 없어 계약 형태만 참조) |
-| my-board (F-30) | 소프트 | draft | 계정관리 바텀시트는 My 메인 우측 상단 `⋯`에서 열린다(my-board Plan의 `T-F30-03`이 이 Plan의 `T-F40-00`을 선행으로 참조). 이 Plan은 시트와 내용만 만든다 |
-| friends (F-53) / send-stamp(stamp 도메인) | 소프트 | draft | F-43 노출 판정(`T-F43-02`)은 friends Plan의 `T-F53-02`가 선행으로 참조하고, F-45 탈퇴 데이터 처리는 stamp 도메인(send-stamp Plan)에 걸린다. 두 Plan 모두 draft라 해당 Task는 보류다 |
+| my-board (F-30) | 소프트 | 미작성(순서상 이후) | 계정관리 바텀시트는 My 메인 우측 상단 `⋯`에서 열린다. 이 Plan은 시트와 내용만 만든다 |
+| stamp·friend 도메인 | 소프트 | 미작성(순서상 이후) | F-43 노출 판정과 F-45 탈퇴 데이터 처리는 도장·친구 데이터에 걸리므로 해당 Task는 보류다 |
 
 ## 결정 사항
 - `칭찬 알림` 토글은 `notifications` F-60~F-63 전체 푸시 알림 발송을 제어한다(인앱 배너 F-64는 무관). `mypage-settings.md` AC를 이 기준으로 수정했다.
