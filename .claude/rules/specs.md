@@ -32,7 +32,8 @@ paths:
 
 1. **Swagger를 먼저 조회한다.** `METHOD + path`로 operation을 찾는다.
    - URL: `https://api.meotto.io.kr/v3/api-docs` (인증 불필요, `main` 머지분만 반영)
-   - 조회: `curl -s https://api.meotto.io.kr/v3/api-docs | jq '.paths["<path>"]'`
+   - 조회: `spec=$(curl -sSf --max-time 10 https://api.meotto.io.kr/v3/api-docs) && echo "$spec" | jq -e '.paths | type == "object"' >/dev/null && echo "$spec" | jq '.paths["<path>"]["<method>"]'` (`<method>`는 소문자: `get`, `post` 등)
+   - `curl`이 실패하거나(HTTP 4xx/5xx, 타임아웃) `.paths` 검사가 실패하면(JSON 파싱 실패, 에러 응답) 조회 실패다 → 4번으로 처리한다. 두 검사를 통과한 뒤 결과가 `null`일 때만(path가 없거나, path는 있어도 해당 method가 없음) "Swagger에 없음"(3번)이다.
    - 머지 전 BE PR의 엔드포인트는 Swagger에 없는 것이 정상이다 (아래 3번 경로).
 2. **Swagger에 있으면 Swagger가 기준이다.** Plan의 계약 표와 다르면 계약 변경이므로 **승인 대상**이다 (`CLAUDE.md` 안전 규칙 1). 승인 전까지 구현·검증을 완료로 쓰지 않는다. 승인 후에는 Plan의 해당 계약 행을 Swagger와 일치하게 고친다.
 3. **Swagger에 없으면 Plan 표가 기준이다.** 해당 행의 상태가 `보류`면 구현하지 않고 질문한다. `확정`이면 그 표에 맞춰 진행한다.

@@ -47,8 +47,9 @@ Agent 프롬프트에 반드시 넣을 것:
 - Plan 경로, Spec 경로, 해당 F-ID의 AC
 - 수정 허용 경로 (`frontend/` 또는 `backend/`), 수정 금지 영역
 - "커밋하지 말 것. 계약 변경이 필요하면 구현하지 말고 보고할 것"
+- API가 걸린 Task: 엔드포인트별 계약 기준과 그 내용. 호출 전에 `.claude/rules/specs.md`의 "API 계약 참조 순서"대로 Swagger를 조회해 정한다 (Swagger에 있으면 Swagger, 없으면 Plan 표, 접근 실패면 Plan 표 + `Swagger 미확인(이유)`). Swagger가 Plan 표와 다르면 Agent를 호출하지 않고 4번처럼 승인을 받는다.
 
-BE와 FE Task가 같은 API를 다뤄도 **서로 기다리지 않는다.** 계약 표가 기준이고 FE는 MSW 목으로 구현한다. FE Agent 프롬프트에 "API가 구현되어 있지 않으면 계약 표 기준 MSW 핸들러를 만들고 목으로 연결까지 구현할 것"을 명시한다. `선행`(공통 준비 Task 등)이 있는 Task만 순서를 지킨다.
+BE와 FE Task가 같은 API를 다뤄도 **서로 기다리지 않는다.** 위에서 정한 계약 기준(Swagger 우선, 없으면 Plan 표)을 따르고 FE는 MSW 목으로 구현한다. FE Agent 프롬프트에 "API가 구현되어 있지 않으면 프롬프트에 적힌 계약 기준대로 MSW 핸들러를 만들고 목으로 연결까지 구현할 것"을 명시한다. `선행`(공통 준비 Task 등)이 있는 Task만 순서를 지킨다.
 
 `실서버 연동 확인` Task: 목을 끄고(`NEXT_PUBLIC_API_MOCKING` 해제) 실제 서버로 화면이 동작하는지 확인하고, 계약과 다른 점은 고치지 말고 보고한다. 사람이 서버 환경을 알려 줘야 하면 묻는다.
 

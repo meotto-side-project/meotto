@@ -26,7 +26,7 @@ tools: Read, Grep, Glob, Bash
    - FE-web 테스트: `cd frontend && pnpm test`, 웹 E2E는 `pnpm test:e2e`. 모바일 테스트 도구(jest-expo, Maestro)는 미설치이므로 모바일 테스트는 미검증.
 4. AC마다 구현 근거와 검증 근거를 찾아 판정한다.
 5. API 계약 정적 대조:
-   - **기준 선정**: 엔드포인트마다 Swagger를 먼저 조회한다 (`curl -s https://api.meotto.io.kr/v3/api-docs | jq '.paths["<path>"]'`). 있으면 Swagger, 없으면 Plan 표가 기준이다. 접근 실패는 Plan 표로 대체하되 리포트 "API 계약 대조" 표 비고에 `Swagger 미확인(이유)`을 적고 통과로 쓰지 않는다. 전체 순서는 `.claude/rules/specs.md`의 "API 계약 참조 순서"를 따른다.
+   - **기준 선정**: 엔드포인트마다 `METHOD + path`로 Swagger를 먼저 조회한다. 조회 명령은 `.claude/rules/specs.md` "API 계약 참조 순서" 1번의 것을 쓴다 (HTTP 상태·JSON 구조 검사 후 `.paths["<path>"]["<method>"]` 조회). operation이 있으면 Swagger, 응답이 유효하고 operation이 없을 때만 Plan 표가 기준이다. 요청 실패(HTTP 에러, 타임아웃)나 문서 이상(JSON 파싱 실패, `.paths` 없음)은 "없음"이 아니라 접근 실패다. 접근 실패는 Plan 표로 대체하되 리포트 "API 계약 대조" 표 비고에 `Swagger 미확인(이유)`을 적고 통과로 쓰지 않는다. 전체 순서는 `.claude/rules/specs.md`의 "API 계약 참조 순서"를 따른다.
    - **대조**: 검증 영역이 한 쪽이면 그 쪽만 대조하고 반대편 칸은 `미검증(상대 영역 미완)`으로 쓴다. 기준(Method, Path, 요청/응답 필드, 에러 `name`)을 BE Controller·DTO·ErrorCode와 FE 호출부·Zod 스키마에서 각각 찾아 일치 여부를 본다. Swagger가 기준인데 Plan 표와 다르면 `Plan 표 미갱신`도 불일치로 보고한다.
    - 이것은 코드 읽기 기반 대조이며 실행 검증이 아님을 리포트에 명시한다. Swagger로 확인할 수 없는 내부 매핑(DTO 필드 ↔ 도메인, ErrorCode 매핑, 소유자 검증)은 코드로 본다.
 6. Plan에 없는 변경(범위 밖 파일, 계약에 없는 필드)이 있으면 별도로 보고한다.
