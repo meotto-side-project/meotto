@@ -233,3 +233,70 @@ describe("실패 응답", () => {
     expect(error).toBe(reason);
   });
 });
+
+function failingBody(reason: Error): ReadableStream<Uint8Array> {
+  return new ReadableStream({
+    start(controller) {
+      controller.error(reason);
+    },
+  });
+}
+
+function pendingBody(): ReadableStream<Uint8Array> {
+  return new ReadableStream({ start: () => undefined });
+}
+
+describe("응답 본문을 읽는 중의 실패", () => {
+  it("성공 응답의 본문 읽기가 실패하면 NETWORK_ERROR를 던진다", async () => {
+    server.use(
+      http.get(
+        `${BASE}${PATH}`,
+        () => new HttpResponse(failingBody(new Error("연결 끊김"))),
+      ),
+    );
+
+    const error = await get(PATH).catch((e: unknown) => e);
+
+    expect(error).toBeInstanceOf(ApiError);
+    expect(error).toMatchObject({ status: 0, code: "NETWORK_ERROR" });
+  });
+
+  it("성공 응답의 본문을 읽는 중 취소하면 취소 사유가 그대로 전파된다", async () => {
+    server.use(
+      http.get(`${BASE}${PATH}`, () => new HttpResponse(pendingBody())),
+    );
+    const controller = new AbortController();
+    const reason = new Error("사용자가 취소함");
+
+    const pending = get(PATH, { signal: controller.signal }).catch(
+      (e: unknown) => e,
+    );
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    controller.abort(reason);
+    const error = await pending;
+
+    expect(error).not.toBeInstanceOf(ApiError);
+    expect(error).toBe(reason);
+  });
+
+  it("오류 응답의 본문을 읽는 중 취소하면 UNKNOWN_ERROR로 바뀌지 않는다", async () => {
+    server.use(
+      http.get(
+        `${BASE}${PATH}`,
+        () => new HttpResponse(pendingBody(), { status: 500 }),
+      ),
+    );
+    const controller = new AbortController();
+    const reason = new Error("사용자가 취소함");
+
+    const pending = get(PATH, { signal: controller.signal }).catch(
+      (e: unknown) => e,
+    );
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    controller.abort(reason);
+    const error = await pending;
+
+    expect(error).not.toBeInstanceOf(ApiError);
+    expect(error).toBe(reason);
+  });
+});

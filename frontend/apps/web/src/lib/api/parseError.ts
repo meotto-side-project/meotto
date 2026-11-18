@@ -6,11 +6,17 @@ export function networkError(): ApiError {
   return new ApiError(0, NETWORK_ERROR_CODE, "네트워크 연결을 확인해 주세요.");
 }
 
-export async function parseError(response: Response): Promise<ApiError> {
+export async function parseError(
+  response: Response,
+  signal?: AbortSignal,
+): Promise<ApiError> {
   let body: unknown;
   try {
     body = await response.json();
-  } catch {
+  } catch (error) {
+    if (signal?.aborted) {
+      throw error;
+    }
     return new ApiError(response.status, UNKNOWN_ERROR_CODE, FALLBACK_MESSAGE);
   }
 

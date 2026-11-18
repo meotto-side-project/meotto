@@ -37,7 +37,7 @@ async function request<T>(
   }
 
   if (!response.ok) {
-    throw await parseError(response);
+    throw await parseError(response, options.signal);
   }
 
   if (
@@ -47,7 +47,16 @@ async function request<T>(
     return undefined as T;
   }
 
-  const text = await response.text();
+  let text: string;
+  try {
+    text = await response.text();
+  } catch (error) {
+    if (options.signal?.aborted) {
+      throw error;
+    }
+    throw networkError();
+  }
+
   return (text === "" ? undefined : JSON.parse(text)) as T;
 }
 

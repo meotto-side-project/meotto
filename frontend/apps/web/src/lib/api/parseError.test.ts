@@ -30,6 +30,22 @@ describe("parseError", () => {
     expect(error.code).toBe("UNKNOWN_ERROR");
   });
 
+  it("취소된 신호로 본문 읽기가 실패하면 그 오류를 그대로 던진다", async () => {
+    const controller = new AbortController();
+    const reason = new Error("취소");
+    controller.abort(reason);
+    const response = new Response(
+      new ReadableStream({
+        start(stream) {
+          stream.error(reason);
+        },
+      }),
+      { status: 500 },
+    );
+
+    await expect(parseError(response, controller.signal)).rejects.toBe(reason);
+  });
+
   it("null 본문도 안전하게 처리한다", async () => {
     const error = await parseError(Response.json(null, { status: 500 }));
     expect(error.code).toBe("UNKNOWN_ERROR");
