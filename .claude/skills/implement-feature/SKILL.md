@@ -54,9 +54,12 @@ BE와 FE Task가 같은 API를 다뤄도 **서로 기다리지 않는다.** 계�
 
 ## 4. 계약 확인
 
-API가 걸린 Task는 Agent 보고의 `계약 변경 필요`와 실제 코드를 확인한다.
-- Plan의 API 계약 표와 BE(Controller, DTO, ErrorCode), FE(호출부, Zod 스키마)를 대조한다.
-- MSW 핸들러의 응답과 에러가 계약 표와 일치하는지도 대조한다.
+API가 걸린 Task는 Agent 보고의 `계약 변경 필요`와 실제 코드를 확인한다. 계약의 기준은 Swagger 우선이다 (`.claude/rules/specs.md`의 "API 계약 참조 순서").
+
+- **Swagger 조회**: 대상 엔드포인트가 Swagger에 있는지 먼저 본다. 있으면 Swagger가 기준, 없으면 Plan 표가 기준이다. 접근 실패는 "Swagger 미확인"으로 보고에 남기고 통과로 쓰지 않는다.
+- **BE Task 완료 뒤**: 담당 BE PR이 머지되어 Swagger에 반영됐는지 확인한다. 반영됐고 Plan 표와 다르면 **계약 변경**이므로 승인 대상이다. 승인되면 Plan 계약 행을 Swagger와 일치시킨다.
+- Plan의 API 계약 표와 BE(Controller, DTO, ErrorCode), FE(호출부, Zod 스키마)를 대조한다. Swagger로 확인할 수 없는 내부 매핑(DTO 필드 ↔ 도메인, ErrorCode, 소유자 검증)은 코드로 본다.
+- MSW 핸들러의 응답과 에러가 기준 계약(Swagger 또는 Plan 표)과 일치하는지도 대조한다.
 - 불일치하거나 변경이 필요하면 **멈추고 사용자에게 승인을 요청**한다. 승인되면 Plan의 계약 표를 먼저 수정(변경 내용 제시 후)하고, 필요한 쪽의 Agent를 다시 호출한다.
 
 ## 5. 테스트 작성과 실행

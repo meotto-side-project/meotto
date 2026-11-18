@@ -21,7 +21,21 @@ paths:
 - `approved`로 바꾸는 것은 사람이 한다. `draft` 상태의 Plan으로는 구현을 시작하지 않는다.
 - 다른 기능에 의존하면 상단 메타의 `선행 Plan`과 "선행 Plan과 가정" 표에 하드/소프트로 기록한다. 하드 의존이 미구현인 상태로 구현을 시작하지 않는다.
 - `docs/plans/README.md`는 Plan 인덱스다 (상태, 선행 Plan, 권장 구현 순서). Plan을 만들거나 상태가 바뀔 때 갱신한다.
-- API 계약은 마크다운 표로 쓴다 (MVP). Plan이 계약의 유일한 출처다.
+- API 계약은 마크다운 표로 쓴다 (MVP). Plan은 **구현 전 초안**의 출처이고, BE 구현이 운영 서버에 올라가면 Swagger가 기준이 된다 (아래 "API 계약 참조 순서").
 - Task ID는 `T-{F-ID}-{nn}` 형식으로 부여하고 한 번 부여하면 바꾸지 않는다 (Linear 매핑 키). `nn`: `00` 공통 준비, `01`~`89` 일반, `98` MSW 구성(저장소에서 한 번), `99` 실서버 연동 확인. `00`, `98`, `99`는 Plan의 첫 F-ID 기준이다.
 - API 계약 표의 `상태`는 `확정` 또는 `보류: <질문>`이다. Plan 승인은 `확정` 행만 승인한다. 보류 행에 의존하는 Task는 확정되기 전까지 구현하지 않는다.
 - Spec이 바뀌어 Plan과 충돌하면 Plan을 고친다. 고치기 전에 변경 내용을 사용자에게 보여준다.
+
+## API 계약 참조 순서 (Swagger-first)
+
+`plan-feature`, `implement-feature`, `verify-feature`, `code-review`, `spec-verifier`는 모두 이 순서를 따른다.
+
+1. **Swagger를 먼저 조회한다.** `METHOD + path`로 operation을 찾는다.
+   - URL: `https://api.meotto.io.kr/v3/api-docs` (인증 불필요, `main` 머지분만 반영)
+   - 조회: `curl -s https://api.meotto.io.kr/v3/api-docs | jq '.paths["<path>"]'`
+   - 머지 전 BE PR의 엔드포인트는 Swagger에 없는 것이 정상이다 (아래 3번 경로).
+2. **Swagger에 있으면 Swagger가 기준이다.** Plan의 계약 표와 다르면 계약 변경이므로 **승인 대상**이다 (`CLAUDE.md` 안전 규칙 1). 승인 전까지 구현·검증을 완료로 쓰지 않는다. 승인 후에는 Plan의 해당 계약 행을 Swagger와 일치하게 고친다.
+3. **Swagger에 없으면 Plan 표가 기준이다.** 해당 행의 상태가 `보류`면 구현하지 않고 질문한다. `확정`이면 그 표에 맞춰 진행한다.
+4. **Swagger 접근에 실패하면** (타임아웃, 네트워크 오류 등) Plan 표로 대체하고 리포트에 `Swagger 미확인(이유)`을 명시한다. **통과로 처리하지 않는다.**
+
+Swagger에는 엔드포인트 시그니처만 있다. BE 내부 구현(DTO 매핑, ErrorCode, 소유자 검증)은 Swagger로 확인할 수 없으므로 `spec-verifier` 5단계의 Controller·DTO·ErrorCode 코드 대조는 그대로 수행한다.

@@ -18,7 +18,7 @@ argument-hint: "[범위: 파일/디렉터리/브랜치 기준, 기본은 현재 
 
 - ❌ 비밀값(`.env`, 키, 토큰)이 포함되어 있다 → ✅ 제거
 - ❌ 이 변경과 무관한 파일 수정, 불필요한 대규모 포맷 변경 → ✅ 분리
-- ❌ Plan(`docs/plans/`)에 없는 API 필드/경로 변경 → ✅ 계약 변경 승인 확인
+- ❌ 변경한 API가 Swagger 또는 Plan 계약 표와 다르다 → ✅ 계약 변경 승인 확인 (조회 순서는 `.claude/rules/specs.md`의 "API 계약 참조 순서". Swagger 우선, 없으면 Plan 표)
 
 ## 3. 백엔드 (`.claude/rules/backend.md`, `backend/CLAUDE.md` 기준)
 
