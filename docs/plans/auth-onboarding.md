@@ -69,7 +69,7 @@
 ## Tasks
 | ID | 제목 | 영역 | F-ID / AC | 수정 경로 | 선행 | 검증 방법 | Linear |
 |---|---|---|---|---|---|---|---|
-| T-F01-00 | 웹 공통 준비: API 클라이언트, `{name,message}` 에러 파서, 인증 쿼리 키·엔드포인트 상수, auth Zod 스키마 | FE-web | F-01~F-04 | frontend/apps/web/src/lib/**, frontend/apps/web/src/components/features/auth/constants/** | 계약 C-2 확정 | cd frontend && pnpm lint && pnpm check-types | MEO-44 |
+| T-F01-00 | 웹 공통 준비: API 클라이언트, `{name,message}` 에러 파서, 인증 쿼리 키·엔드포인트 상수, auth Zod 스키마 | FE-web | F-01~F-04 | frontend/apps/web/src/lib/**, frontend/apps/web/src/components/features/auth/constants/**, frontend/apps/web/src/components/features/auth/schemas/** | 계약 C-2 확정 | cd frontend && pnpm lint && pnpm check-types | MEO-44 |
 | T-F01-01 | 네이티브 스플래시와 시작 분기(온보딩 또는 홈) | FE-mobile | F-01 | frontend/apps/mobile/src/** | 보류: 로그인 상태 유지 방식, 스플래시 분기 조건 | 수동 확인: 시뮬레이터. cd frontend && pnpm lint && pnpm check-types | MEO-45 |
 | T-F01-98 | MSW 구성: 별도 구현 없음. `msw` 설치와 `NEXT_PUBLIC_API_MOCKING` 구성은 MEO-38(PR #25)에서 한다 | FE-web | - | - | T-F01-00 | MEO-38 머지로 대체. 인증 API 핸들러(`handlers/auth.ts`)는 각 FE Task가 계약 표 기준으로 만든다 | MEO-38 (연결) |
 | T-F02-01 | 온보딩 3장 슬라이드(인디케이터, 카피, 마지막 장 `멋토 시작하기`) | FE-web | F-02 AC1 | frontend/apps/web/src/app/onboarding/**, frontend/apps/web/src/components/features/onboarding/** | T-F01-00 | cd frontend && pnpm lint && pnpm check-types. AC는 수동 확인(스토리 도구 미설치) | MEO-50 |
