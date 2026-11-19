@@ -1,0 +1,33 @@
+name: Contract Confirmed Notify
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/plans/**'
+      - 'docs/specs/**'
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Detect contract confirmation and notify
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+          AFTER_SHA: ${{ github.sha }}
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+          LINEAR_API_TOKEN: ${{ secrets.LINEAR_API_TOKEN }}
+          CONTRACT_DISCORD_WEBHOOK_URL: ${{ secrets.CONTRACT_DISCORD_WEBHOOK_URL }}
+          CONTRACT_MENTION_DISCORD_USER_ID: ${{ vars.CONTRACT_MENTION_DISCORD_USER_ID }}
+        run: node .github/scripts/detect-contract-confirmation.mjs
