@@ -1,5 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
+import { basename } from "node:path";
 
 const TEAM_ID = "47bb40f1-9cf4-4a2f-93ec-7c3b184e9c78";
 const TEAM_KEY = "MEO";
@@ -51,10 +52,20 @@ function parseTableRowLine(line) {
 	const cells = rowText.split("|").map((cell) => cell.trim());
 	const contractId = cells[1];
 	const status = cells[cells.length - 2];
+	const fid = cells[cells.length - 3];
 	if (!contractId || !/^C-\d+$/.test(contractId) || status === undefined) {
 		return null;
 	}
-	return { sign, contractId, status, rowText };
+	return { sign, contractId, status, fid, rowText, cells };
+}
+
+function extractEndpoint(cells) {
+	return {
+		method: cells[2] ?? "",
+		path: cells[3] ?? "",
+		request: cells[5] ?? "",
+		response: cells[6] ?? "",
+	};
 }
 
 function findConfirmedTransitions(diffText) {
@@ -68,20 +79,40 @@ function findConfirmedTransitions(diffText) {
 		}
 
 		if (row.sign === "-" && row.status.startsWith("보류")) {
-			removedPending.set(row.contractId, row.rowText);
+			removedPending.set(row.contractId, row);
 		}
 		if (row.sign === "+" && row.status.startsWith("확정")) {
-			addedConfirmed.set(row.contractId, row.rowText);
+			addedConfirmed.set(row.contractId, row);
 		}
 	}
 
 	const transitions = [];
 	for (const [contractId, newRow] of addedConfirmed) {
-		if (removedPending.has(contractId)) {
-			transitions.push({ contractId, oldRow: removedPending.get(contractId), newRow });
+		const oldRow = removedPending.get(contractId);
+		if (oldRow) {
+			transitions.push({ contractId, oldRow, newRow });
 		}
 	}
 	return transitions;
+}
+
+function truncate(text, maxLength) {
+	if (!text) {
+		return text;
+	}
+	return text.length > maxLength ? `${text.slice(0, maxLength - 1)}…` : text;
+}
+
+function cleanStatusText(status) {
+	let text = status.replace(/^(보류\s*:|확정)\s*/, "").trim();
+	if (text.startsWith("(") && text.endsWith(")")) {
+		text = text.slice(1, -1).trim();
+	}
+	return text;
+}
+
+function planNameFromPath(filePath) {
+	return basename(filePath, ".md");
 }
 
 function extractFeParentIssue(fileContent) {
@@ -130,7 +161,32 @@ async function findExistingContractIssue(contractId) {
 	return data.issues.nodes[0] ?? null;
 }
 
-async function createContractIssue({ contractId, summary, parentUuid, prUrl, filePath }) {
+function contractDetailLines({ filePath, prUrl, oldStatus, newStatus, method, path, request, response }) {
+	return [
+		`- 변경 파일: \`${filePath}\``,
+		`- 관련 BE PR: ${prUrl}`,
+		`- 보류사항: ${oldStatus}`,
+		`- 확정사항: ${newStatus}`,
+		`  - 엔드포인트: \`${method} ${path}\``,
+		`  - Request: ${request}`,
+		`  - Response: ${response}`,
+	].join("\n");
+}
+
+async function addContractUpdateComment({ issueId, contractId, fid, ...detail }) {
+	const body = `⚠️ ${contractId}(${fid})가 다시 변경됐습니다.\n\n${contractDetailLines(detail)}`;
+
+	await linearGraphQl(
+		`mutation($input: CommentCreateInput!) {
+			commentCreate(input: $input) {
+				success
+			}
+		}`,
+		{ input: { issueId, body } },
+	);
+}
+
+async function createContractIssue({ contractId, fid, parentUuid, ...detail }) {
 	const data = await linearGraphQl(
 		`mutation($input: IssueCreateInput!) {
 			issueCreate(input: $input) {
@@ -142,12 +198,10 @@ async function createContractIssue({ contractId, summary, parentUuid, prUrl, fil
 			input: {
 				teamId: TEAM_ID,
 				parentId: parentUuid ?? undefined,
-				title: `[${contractId} 확정] ${summary} — FE 반영 필요`,
+				title: truncate(`[${contractId} 확정] ${fid} — FE 반영 필요`, 200),
 				description:
-					`백엔드 작업 중 ${contractId}가 아래처럼 확정됐습니다. 참고해서 프로젝트를 업데이트해주세요.\n\n` +
-					`- 변경 파일: \`${filePath}\`\n` +
-					`- 관련 PR: ${prUrl}\n` +
-					`- 계약: ${summary}`,
+					`백엔드 작업 중 ${contractId}(${fid})가 아래처럼 확정됐습니다. 참고해서 프로젝트를 업데이트해주세요.\n\n` +
+					contractDetailLines(detail),
 			},
 		},
 	);
@@ -165,10 +219,90 @@ async function postToDiscord(payload) {
 	}
 }
 
-function summarizeRow(rowText) {
-	const cells = rowText.split("|").map((cell) => cell.trim()).filter((cell) => cell.length > 0);
-	const [, method, path] = cells;
-	return `${method} ${path}`;
+const COLOR_BLUE = 3447003;
+const COLOR_WARNING = 16776960;
+const MAX_DETAIL_PER_SECTION = 3;
+const SPACER_FIELD = { name: "​", value: "​", inline: false };
+
+function formattedNow() {
+	return new Date().toISOString().replace("T", " ").slice(0, 19);
+}
+
+function confirmedDetailField(entry, index) {
+	const lines = [
+		`**파일**: \`${entry.filePath}\``,
+		"",
+		`**보류사항**:`,
+		entry.oldStatus,
+		"",
+		`**확정사항**:`,
+		entry.newStatus,
+		"",
+		`⠀⠀- 엔드포인트: \`${entry.method} ${entry.path}\``,
+		"",
+		`⠀⠀- Request: ${entry.request}`,
+		"",
+		`⠀⠀- Response: ${entry.response}`,
+		"",
+		entry.updatedExisting ? `📌 FE 이슈 (변경사항 댓글로 추가됨): ${entry.issueUrl}` : `📌 FE 이슈 생성됨: ${entry.issueUrl}`,
+	];
+	if (!entry.feParentIssue) {
+		lines.push("⚠️ FE 상위 이슈를 찾지 못해 parentId 없이 생성됨");
+	}
+	return {
+		name: `${index}. ${planNameFromPath(entry.filePath)} | ${entry.contractId} (${entry.fid})`,
+		value: lines.join("\n"),
+		inline: false,
+	};
+}
+
+function buildConfirmedPayload(entries, prUrl) {
+	const fields = [
+		{ name: `✅ 계약 ${entries.length}건이 확정되었습니다!`, value: "​", inline: false },
+	];
+
+	const toShow = entries.slice(0, MAX_DETAIL_PER_SECTION);
+	toShow.forEach((entry, i) => {
+		if (i > 0) {
+			fields.push(SPACER_FIELD);
+		}
+		fields.push(confirmedDetailField(entry, i + 1));
+	});
+
+	if (entries.length > MAX_DETAIL_PER_SECTION) {
+		fields.push({ name: `외 ${entries.length - MAX_DETAIL_PER_SECTION}건`, value: "​", inline: false });
+	}
+
+	return {
+		embeds: [
+			{
+				title: "🔔 보류 계약 확정 알림 🔔",
+				color: COLOR_BLUE,
+				fields,
+				footer: { text: `MEOTTO Plan · ${formattedNow()}` },
+			},
+		],
+	};
+}
+
+function buildFallbackPayload(unparsedFiles, prUrl) {
+	return {
+		content: `<@${mentionUserId}> 변경된 Plan 파일에서 보류→확정 전환을 자동으로 찾지 못했어요. PR을 확인해주세요.`,
+		embeds: [
+			{
+				title: "⚠️ 보류→확정 전환 자동 감지 실패",
+				color: COLOR_WARNING,
+				fields: [
+					{
+						name: "변경된 Plan 파일",
+						value: unparsedFiles.map((f) => `- \`${f}\``).join("\n"),
+						inline: false,
+					},
+				],
+				footer: { text: `관련 BE PR: ${prUrl}` },
+			},
+		],
+	};
 }
 
 async function main() {
@@ -181,7 +315,7 @@ async function main() {
 		return;
 	}
 
-	const confirmedFields = [];
+	const confirmedEntries = [];
 	const unparsedFiles = [];
 
 	for (const filePath of planFiles) {
@@ -198,16 +332,43 @@ async function main() {
 		const parentUuid = feParentIssue ? await findIssueUuidByIdentifier(feParentIssue) : null;
 
 		for (const transition of transitions) {
-			const summary = summarizeRow(transition.newRow);
+			const fid = transition.newRow.fid || transition.oldRow.fid || "F-ID 불명";
+			const oldStatus = truncate(cleanStatusText(transition.oldRow.status), 200);
+			const newStatus = truncate(cleanStatusText(transition.newRow.status), 200);
+			const endpoint = extractEndpoint(transition.newRow.cells);
+			const method = truncate(endpoint.method, 20);
+			const path = truncate(endpoint.path, 200);
+			const request = truncate(endpoint.request, 200);
+			const response = truncate(endpoint.response, 200);
 			const existing = await findExistingContractIssue(transition.contractId);
 
 			let issueUrl = existing?.url ?? null;
-			let skipped = Boolean(existing);
+			const updatedExisting = Boolean(existing);
 
-			if (!existing) {
+			if (existing) {
+				await addContractUpdateComment({
+					issueId: existing.id,
+					contractId: transition.contractId,
+					fid,
+					oldStatus,
+					newStatus,
+					method,
+					path,
+					request,
+					response,
+					filePath,
+					prUrl,
+				});
+			} else {
 				const created = await createContractIssue({
 					contractId: transition.contractId,
-					summary,
+					fid,
+					oldStatus,
+					newStatus,
+					method,
+					path,
+					request,
+					response,
 					parentUuid,
 					prUrl,
 					filePath,
@@ -215,31 +376,29 @@ async function main() {
 				issueUrl = created.url;
 			}
 
-			confirmedFields.push({
-				name: `✅ ${transition.contractId} 확정 (${filePath})`,
-				value: `${summary}\n${skipped ? `이미 존재하는 이슈: ${issueUrl}` : `FE 이슈 생성: ${issueUrl}`}${feParentIssue ? "" : "\n⚠️ FE 상위 이슈를 찾지 못해 parentId 없이 생성됨"}`,
-				inline: false,
+			confirmedEntries.push({
+				contractId: transition.contractId,
+				fid,
+				filePath,
+				oldStatus,
+				newStatus,
+				method,
+				path,
+				request,
+				response,
+				issueUrl,
+				updatedExisting,
+				feParentIssue,
 			});
 		}
 	}
 
-	if (confirmedFields.length > 0) {
-		await postToDiscord({
-			embeds: [
-				{
-					title: "🔔 보류 계약 확정 알림 🔔",
-					color: 3447003,
-					fields: confirmedFields,
-					footer: { text: `PR: ${prUrl}` },
-				},
-			],
-		});
+	if (confirmedEntries.length > 0) {
+		await postToDiscord(buildConfirmedPayload(confirmedEntries, prUrl));
 	}
 
 	if (unparsedFiles.length > 0) {
-		await postToDiscord({
-			content: `<@${mentionUserId}> 다음 Plan 파일이 변경됐는데 보류→확정 전환을 자동으로 찾지 못했어요. PR을 확인해주세요: ${prUrl}\n${unparsedFiles.map((f) => `- \`${f}\``).join("\n")}`,
-		});
+		await postToDiscord(buildFallbackPayload(unparsedFiles, prUrl));
 	}
 }
 
