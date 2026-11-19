@@ -16,7 +16,8 @@ Meotto에서 Claude Code로 기능을 개발하는 방법입니다. Spec(명세)
 1. Claude Code를 설치하고 이 저장소 루트(`meotto/`)에서 실행합니다. 루트에서 실행해야 `.claude/`의 명령이 모두 보입니다.
 2. `gh auth status`로 GitHub CLI 로그인을 확인합니다.
 3. **Linear 연결**: 저장소의 `.mcp.json`에 Linear 서버가 등록되어 있습니다. Claude Code를 시작하면 이 프로젝트의 MCP 서버를 쓸지 묻는 프롬프트가 뜨니 승인하고, `/mcp`에서 `linear`를 선택해 로그인합니다. `/mcp`에서 `linear`가 connected로 보이면 됩니다.
-4. 백엔드 작업이 있으면 JDK 21, 프론트엔드 작업이 있으면 Node 22와 pnpm이 필요합니다 (각 폴더 README 참고).
+4. **Figma 연결**: `.mcp.json`에 Figma 서버(`https://mcp.figma.com/mcp`)도 등록되어 있습니다. Linear와 같은 방식으로 승인하고 `/mcp`에서 `figma`를 선택해 로그인합니다. 팀원마다 한 번씩 합니다. 읽기만 하며 Figma 파일은 수정하지 않습니다.
+5. 백엔드 작업이 있으면 JDK 21, 프론트엔드 작업이 있으면 Node 22와 pnpm이 필요합니다 (각 폴더 README 참고).
 
 ## 3. 기능 하나를 만드는 흐름
 
@@ -29,11 +30,18 @@ Spec → Plan → Tasks → Linear → 구현 → 테스트 → 검증 → PR �
 | 1 | `/plan-feature <spec 파일명>` | `spec-analyst`로 모호한 점·누락·선행 기능을 질문으로 정리 | 질문에 답함 (답한 내용은 AI가 Spec에 반영) |
 | 2 | (같은 명령) | `docs/plans/<feature>.md` 작성: 기술 설계, API 계약 표, Tasks | **Plan과 API 계약을 읽고 승인**(`상태: approved`로 변경) |
 | 3 | `/sync-linear-issues <plan>` | Tasks를 Linear 이슈·서브이슈로 만들 목록을 보여 줌 | 목록을 확인하고 승인 (승인 전에는 Linear를 바꾸지 않음) |
-| 4 | `/implement-feature <Task ID 또는 MEO-번호>` | Task 영역에 따라 `frontend-codegen`/`backend-codegen` 호출, 검증 명령 실행 | 계약·DB 변경이 필요하면 승인 |
+| 4 | `/implement-feature <Task ID 또는 MEO-번호>` | FE Task는 먼저 Figma에서 최신 디자인을 찾아 후보를 보여 줌. 이후 Task 영역에 따라 `frontend-codegen`/`backend-codegen` 호출, 검증 명령 실행 | 화면 링크 제공 또는 후보 확인, 계약·DB 변경이 필요하면 승인 |
 | 5 | `/implement-feature`의 테스트 단계, FE는 `/create-test` `/create-e2e` | AC마다 테스트를 작성하고 실행. 도구가 없는 테스트는 만들지 않고 "미검증"으로 남김 | 테스트 도구 설치 승인 |
 | 6 | `/verify-feature <feature>` | `spec-verifier`가 AC별 증거(테스트 포함)를 모아 충족/미충족/미검증 판정. PR이 있으면 CI 결과(`gh pr checks`)도 확인 | 결과 확인, 수동으로 봐야 할 항목 확인 |
 | 7 | `/git-commit` → `/create-pr` | 커밋 분할 계획, PR 본문 작성, PR 생성 후 CI 상태 확인 | 커밋 계획, push, PR 생성을 **각각 승인** |
 | 8 | `/log-metrics <PR> <manual\|harness>` | 시간·수정량 등을 모아 `docs/metrics/`에 기록 | 작업 시간 등 자가 입력 |
+
+### Figma 디자인 참조
+
+- Figma는 참고 자료이고 **Spec이 기준**입니다. 둘이 다르면 AI가 고르지 않고 차이를 보고하고 질문합니다. (예: `send-stamp.md`의 "비회원 화면은 이전 디자인")
+- `/implement-feature`가 FE Task 시작 때 최신 디자인을 읽습니다.
+- 화면 링크(Figma에서 프레임 우클릭 → Copy link to selection)를 같이 주면 그것을 씁니다. 링크는 선택이고, 없어도 됩니다. 없으면 `docs/specs/README.md`의 Figma 디자인 페이지에서 날짜 제목 섹션(`11/16` 식, 디자이너가 매주 추가)을 최신순으로 내려가며 Spec의 화면 설명과 맞는 프레임을 스크린샷으로 확인해 찾습니다. 날짜마다 모든 화면이 있지는 않으므로, 그 화면이 처음 나오는 가장 최신 날짜의 프레임을 디자인으로 삼고 후보를 보여 주고 확인받습니다. Spec의 `Figma 섹션`은 필수가 아니라 찾는 힌트입니다. 못 찾으면 화면을 지어내지 않고 링크를 요청합니다.
+- 사용한 링크와 읽은 시각은 PR 본문 Changes의 "참고한 디자인"에 남습니다. 디자인 토큰은 `/create-component`가 `get_variable_defs`로 읽어 코드 토큰과 대조합니다.
 
 ### 선행 기능이 있을 때
 
@@ -103,6 +111,7 @@ AI는 `main`에 커밋·push하지 못합니다(훅이 차단). 검증이 실패
 | 증상 | 원인과 해결 |
 |---|---|
 | `main 브랜치에서는 commit/push 할 수 없습니다` | 의도된 차단입니다. 작업 브랜치를 먼저 만드세요. |
+| Figma를 읽지 못한다고 함 | `/mcp`에서 `figma` 로그인을 확인하세요. 링크를 직접 주면 프레임 검색을 건너뜁니다. |
 | `/sync-linear-issues`가 Linear 미연결이라고 함 | `/mcp`에서 `linear` 로그인을 확인하세요. 필요하면 Claude Code를 다시 시작합니다. |
 | 명령이 보이지 않음 | 저장소 루트에서 실행했는지 확인하세요. |
 | BE 파일 편집 후 "주석 금지" 경고 | 백엔드는 주석을 쓰지 않습니다. 해당 줄을 지우세요. |
