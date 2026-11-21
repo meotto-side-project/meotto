@@ -15,7 +15,7 @@ argument-hint: "<web|mobile> <컴포넌트 이름과 용도>"
 ## 시작 전 확인
 
 1. `src/components/ui`, `src/lib/helpers/cn` 등 전제 파일이 실제로 있는지 확인한다. 없으면(현재 Meotto에는 아직 없을 수 있다) 사용자에게 알리고, 필요한 최소 구조(`cn` 헬퍼 등)를 함께 만들지 묻는다.
-2. 색상, 간격은 `docs/specs/design-system.md`와 기존 토큰을 확인한다. 임의 값을 쓰지 않는다.
+2. 색상, 간격은 `docs/specs/design-system.md`와 기존 토큰을 확인한다. 임의 값을 쓰지 않는다. 토큰 값이 코드에 없거나 불확실하면 Figma MCP의 `get_variable_defs`로 디자인시스템 프레임(`design-system.md`의 `Figma 섹션`)의 변수를 읽어 기존 토큰과 대조한다. 코드 토큰과 다르면 임의로 고르지 말고 차이를 보고하고 질문한다. Figma는 읽기만 한다.
 3. Storybook 설치 여부를 확인한다. 미설치면 스토리 파일을 만들지 않는다 (`@storybook/*` import가 타입 검사를 깨뜨린다). 스토리를 만들지 못했음을 보고하고 설치는 별도 승인으로 안내한다.
 
 ## 배치 결정
