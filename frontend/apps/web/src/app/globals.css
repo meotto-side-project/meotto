@@ -21,6 +21,7 @@
   --radius-sm: 10px;
   --radius-md: 30px;
   --radius-lg: 50px;
+  --radius-nav-item: 20px;
 
   --font-sans:
     var(--font-poppins), "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
@@ -41,6 +42,7 @@
   --text-button-m--line-height: 30px;
   --text-label: 14px;
   --text-caption: 13px;
+  --text-nav: 12px;
 
   --tracking-tight: -0.01em;
 
