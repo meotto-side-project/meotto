@@ -63,7 +63,7 @@
 
 ## 테스트 전략
 - BE: `MemberService`(아이디 제안·중복), `AuthService`(소셜 토큰 검증은 외부 호출을 목킹) 서비스 단위 테스트
-- FE: 컴포넌트 테스트와 E2E 도구가 미설치라 **자동 검증은 미검증**으로 보고한다. 설치 후 F-02 AC(마지막 장에서만 `멋토 시작하기`), F-03 AC(로그인 성공 시 홈 이동)를 스토리 play 함수와 E2E로 덮는다
+- FE: Vitest + React Testing Library 컴포넌트 테스트로 F-02 AC(마지막 장에서만 `멋토 시작하기`)와 F-03 AC(로그인 성공 시 홈 이동)를 덮고, 핵심 여정은 Playwright E2E로 덮는다. 스토리 `play` 테스트는 쓰지 않는다(`frontend-web.md`)
 - 사람이 확인할 AC: 실제 소셜 제공자 연동, 앱 설치 여부 분기, 딥링크(실기기)
 
 ## Tasks
@@ -72,7 +72,7 @@
 | T-F01-00 | 웹 공통 준비: API 클라이언트, `{name,message}` 에러 파서, 인증 쿼리 키·엔드포인트 상수, auth Zod 스키마 | FE-web | F-01~F-04 | frontend/apps/web/src/lib/**, frontend/apps/web/src/components/features/auth/constants/**, frontend/apps/web/src/components/features/auth/schemas/** | 계약 C-2 확정 | cd frontend && pnpm lint && pnpm check-types | MEO-44 |
 | T-F01-01 | 네이티브 스플래시와 시작 분기(온보딩 또는 홈) | FE-mobile | F-01 | frontend/apps/mobile/src/** | 보류: 로그인 상태 유지 방식, 스플래시 분기 조건 | 수동 확인: 시뮬레이터. cd frontend && pnpm lint && pnpm check-types | MEO-45 |
 | T-F01-98 | MSW 구성: 별도 구현 없음. `msw` 설치와 `NEXT_PUBLIC_API_MOCKING` 구성은 MEO-38(PR #25)에서 한다 | FE-web | - | - | T-F01-00 | MEO-38 머지로 대체. 인증 API 핸들러(`handlers/auth.ts`)는 각 FE Task가 계약 표 기준으로 만든다 | MEO-38 (연결) |
-| T-F02-01 | 온보딩 3장 슬라이드(인디케이터, 카피, 마지막 장 `멋토 시작하기`) | FE-web | F-02 AC1 | frontend/apps/web/src/app/onboarding/**, frontend/apps/web/src/components/features/onboarding/** | T-F01-00 | cd frontend && pnpm lint && pnpm check-types. AC는 수동 확인(스토리 도구 미설치) | MEO-50 |
+| T-F02-01 | 온보딩 3장 슬라이드(인디케이터, 카피, 마지막 장 `멋토 시작하기`) | FE-web | F-02 AC1 | frontend/apps/web/src/app/onboarding/**, frontend/apps/web/src/components/features/onboarding/**, frontend/apps/web/public/images/onboarding/** | T-F01-00 | cd frontend && pnpm lint && pnpm check-types && pnpm test. AC는 컴포넌트 테스트(`OnboardingCarousel.test.tsx`) | MEO-50 |
 | T-F03-01 | `Member` Entity·Repository·마이그레이션 (스키마 승인 필요) | BE | F-03 | backend/src/main/java/com/meotto/api/domain/member/** | 데이터 모델 승인 | cd backend && ./gradlew spotlessCheck checkstyleMain test | MEO-46 |
 | T-F03-02 | 소셜 로그인 API(카카오·Apple)와 토큰 발급 | BE | F-03 AC2 | backend/src/main/java/com/meotto/api/domain/auth/**, backend/src/main/java/com/meotto/api/global/security/** | T-F03-01 | cd backend && ./gradlew spotlessCheck checkstyleMain test | MEO-26 (연결, 완료) |
 | T-F03-03 | 아이디 랜덤 제안 API(C-2) | BE | F-03 | backend/src/main/java/com/meotto/api/domain/member/** | T-F03-01, 계약 C-2 확정 | cd backend && ./gradlew spotlessCheck checkstyleMain test | MEO-51 |
