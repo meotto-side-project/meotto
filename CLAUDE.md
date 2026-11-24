@@ -38,6 +38,7 @@ Spec → Plan → Tasks → Linear → Implementation → Test → Verification 
 | 8. 측정 | `/log-metrics` | 시간, 수정량, AC 충족, 유지보수 비용을 `docs/metrics/`에 기록 (수동 PR도 같은 방식) | 기록 추가 시 |
 
 단계 사이에는 사람이 확인한다. 위 명령은 모두 `/명령`으로 직접 실행한다 (자동 호출에 의존하지 않는다).
+`/명령` 없이 대화로 같은 단계(구현, 컴포넌트, 테스트, 검증, 커밋, PR)를 진행할 때도 시작 전에 해당 `.claude/skills/*/SKILL.md`를 끝까지 읽고 그 절차를 따른다. 따르지 못하는 부분은 먼저 알린다.
 
 ## 문서 책임
 
