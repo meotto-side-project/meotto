@@ -43,7 +43,11 @@ const OnboardingCarousel = ({
         aria-label={`${total}장 중 ${index + 1}번째`}
         className="flex flex-1 flex-col"
       >
-        <div className="flex flex-col gap-3.75 pl-6 break-keep">
+        <div
+          role="status"
+          aria-atomic="true"
+          className="flex flex-col gap-3.75 pl-6 break-keep"
+        >
           <h1 className="text-h2 leading-8.75 font-medium whitespace-pre-line text-black">
             {slide.titleBefore}
             <span className="text-tomato">{slide.titleHighlight}</span>
