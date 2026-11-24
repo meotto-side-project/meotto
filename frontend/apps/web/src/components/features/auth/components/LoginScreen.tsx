@@ -1,35 +1,13 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-
 import Logo from "@/components/ui/Logo/Logo";
 import TomatoSymbol from "@/components/ui/TomatoSymbol/TomatoSymbol";
-import { postToNative } from "@/lib/bridge/postToNative";
 
-import { AUTH_ROUTES } from "../constants/routes";
-import {
-  type SocialLoginProvider,
-  useSocialLoginMutation,
-} from "../queries/useSocialLoginMutation";
-import { requestSocialToken } from "../utils/requestSocialToken";
+import { useSocialLogin } from "../hooks/useSocialLogin";
 import SocialLoginButton from "./SocialLoginButton";
 
 const LoginScreen = () => {
-  const router = useRouter();
-  const { mutate, isPending, isError } = useSocialLoginMutation();
-
-  const handleLogin = async (provider: SocialLoginProvider) => {
-    const token = await requestSocialToken(provider);
-    mutate(
-      { provider, token },
-      {
-        onSuccess: ({ isNewMember }) => {
-          postToNative({ type: "AUTH_LOGIN_SUCCESS" });
-          router.replace(isNewMember ? AUTH_ROUTES.signup : AUTH_ROUTES.home);
-        },
-      },
-    );
-  };
+  const { login, isPending, isError } = useSocialLogin();
 
   return (
     <main className="flex min-h-dvh flex-col bg-gray-50 px-6.75 pt-[max(env(safe-area-inset-top),0px)] pb-[max(env(safe-area-inset-bottom),2rem)]">
@@ -46,7 +24,7 @@ const LoginScreen = () => {
         <SocialLoginButton
           provider="kakao"
           disabled={isPending}
-          onClick={() => void handleLogin("kakao")}
+          onClick={() => void login("kakao")}
         />
         <SocialLoginButton
           provider="naver"
@@ -57,7 +35,7 @@ const LoginScreen = () => {
         <SocialLoginButton
           provider="apple"
           disabled={isPending}
-          onClick={() => void handleLogin("apple")}
+          onClick={() => void login("apple")}
         />
       </div>
     </main>

@@ -2,8 +2,7 @@ import { http, HttpResponse } from "msw";
 
 import { AUTH_ENDPOINTS } from "@/components/features/auth/constants/url";
 
-const apiUrl = (path: string) =>
-  `${process.env.NEXT_PUBLIC_API_URL ?? ""}${path}`;
+import { apiUrl } from "../apiUrl";
 
 export const authHandlers = [
   http.post(apiUrl(AUTH_ENDPOINTS.kakaoLogin), () =>

@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { beforeEach, expect, test, vi } from "vitest";
 
+import { apiUrl } from "@/mocks/apiUrl";
 import { server } from "@/mocks/server";
 
 import { AUTH_ENDPOINTS } from "../constants/url";
@@ -83,9 +84,8 @@ test("Apple 로그인에 성공하면 홈으로 이동한다", async () => {
 
 test("신규 회원이면 프로필 입력으로 이동한다", async () => {
   server.use(
-    http.post(
-      `${process.env.NEXT_PUBLIC_API_URL ?? ""}${AUTH_ENDPOINTS.kakaoLogin}`,
-      () => HttpResponse.json({ isNewMember: true, memberId: 2 }),
+    http.post(apiUrl(AUTH_ENDPOINTS.kakaoLogin), () =>
+      HttpResponse.json({ isNewMember: true, memberId: 2 }),
     ),
   );
   renderScreen();
@@ -99,13 +99,11 @@ test("신규 회원이면 프로필 입력으로 이동한다", async () => {
 
 test("로그인에 실패하면 안내 문구를 보여주고 이동하지 않는다", async () => {
   server.use(
-    http.post(
-      `${process.env.NEXT_PUBLIC_API_URL ?? ""}${AUTH_ENDPOINTS.kakaoLogin}`,
-      () =>
-        HttpResponse.json(
-          { name: "INVALID_KAKAO_TOKEN", message: "유효하지 않은 토큰" },
-          { status: 401 },
-        ),
+    http.post(apiUrl(AUTH_ENDPOINTS.kakaoLogin), () =>
+      HttpResponse.json(
+        { name: "INVALID_KAKAO_TOKEN", message: "유효하지 않은 토큰" },
+        { status: 401 },
+      ),
     ),
   );
   renderScreen();
