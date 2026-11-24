@@ -14,12 +14,12 @@
 | design-system | 하드(문서) | 구현 대상 아님 | 색상·타이포·버튼 토큰은 `docs/specs/design-system.md` 기준으로 쓴다 |
 
 ## 결정 사항
-- 없음. 이 Plan 작성 시 사용자가 답한 질문은 없고, 아래 "보류 질문"은 모두 보류로 둔다.
+- 로그인 상태 유지: 토큰은 HttpOnly 쿠키가 맡고, 네이티브는 로그인 성공 시 웹이 보낸 `AUTH_LOGIN_SUCCESS`로 로그인 플래그만 저장한다. 앱은 시작할 때 이 플래그로 분기하고 `AUTH_STATE`로 웹에 전달한다.
 
 ## 기술 설계
 - 인증의 중심은 `Member`다. 소셜 로그인(카카오·Apple, 네이버는 검수 대기로 보류)으로 가입과 로그인을 처리하고, 응답의 `isNewMember`로 프로필 입력 화면 진입 여부를 가른다. 신규 회원은 `C-3`으로 프로필을 완료해야 가입이 끝난다.
 - 아이디(`@아이디`) 랜덤 제안은 가입 전에 호출되는 `C-2`가 담당한다. 아이디 유일성은 `C-3`에서 DB 유니크 제약과 서비스 검증으로 보장한다.
-- **토큰 전달 방식 확정**: `access_token`/`refresh_token` 둘 다 HttpOnly·Secure·SameSite=None 쿠키로 전달한다. 응답 본문에는 토큰 값이 들어가지 않는다 (`global/security/jwt`, `cookie` 기존 구현 그대로). `httpOnly` 쿠키는 클라이언트 JS/네이티브가 값을 직접 읽을 수 없으므로, 네이티브 보안 저장소로 토큰 "값"을 옮기는 방식은 애초에 불가능하다 — 네이티브 쪽은 웹뷰의 쿠키 저장소가 요청마다 자동으로 쿠키를 붙이는 것에 의존하게 된다. 로그인 상태를 어디에 "보관"할지(웹뷰 쿠키 vs 네이티브 보안 저장소)는 이 제약을 반영해 FE가 다시 검토해야 하는 Spec의 미해결 질문으로 남긴다.
+- **토큰 전달 방식 확정**: `access_token`/`refresh_token` 둘 다 HttpOnly·Secure·SameSite=None 쿠키로 전달한다. 응답 본문에는 토큰 값이 들어가지 않는다 (`global/security/jwt`, `cookie` 기존 구현 그대로). `httpOnly` 쿠키는 클라이언트 JS/네이티브가 값을 직접 읽을 수 없으므로, 네이티브 보안 저장소로 토큰 "값"을 옮기는 방식은 애초에 불가능하다 — 네이티브 쪽은 웹뷰의 쿠키 저장소가 요청마다 자동으로 쿠키를 붙이는 것에 의존하게 된다. 따라서 네이티브는 토큰이 아니라 로그인 플래그만 보관한다(위 "결정 사항").
 - 스플래시는 웹뷰가 뜨기 전에 보여야 하므로 네이티브(`FE-mobile`)다. 온보딩·로그인 화면은 웹(`FE-web`)이다. 공유 링크 진입(F-04)은 일반 브라우저에서도 열려야 하므로 웹이다.
 - 앱 설치 여부 분기, 딥링크 처리는 네이티브 몫이다(`T-F04-03`).
 
@@ -51,8 +51,8 @@
 ## 웹뷰 브리지 메시지 계약
 | 방향 | type | payload | 용도 | 상태 |
 |---|---|---|---|---|
-| 웹 → 네이티브 | `AUTH_LOGIN_SUCCESS` | `{ ... }` | 로그인 성공 알림. **주의**: 토큰이 HttpOnly 쿠키라 웹뷰 JS가 토큰 값 자체를 읽어 payload에 넣을 수 없음 — "토큰 보관 요청"이 아니라 "로그인 성공 사실"만 알리는 용도로 재검토 필요 | 보류: 로그인 상태 유지 방식 |
-| 네이티브 → 웹 | `AUTH_STATE` | `{ loggedIn }` | 시작 시 로그인 상태 전달 | 보류: 로그인 상태 유지 방식 |
+| 웹 → 네이티브 | `AUTH_LOGIN_SUCCESS` | 없음 (`{ type }`만) | 로그인 성공 알림. 네이티브가 "로그인했음" 플래그를 저장한다. 토큰은 HttpOnly 쿠키라 payload에 없음 | 확정 |
+| 네이티브 → 웹 | `AUTH_STATE` | `{ loggedIn }` | 시작 시 네이티브 플래그 기준 로그인 상태 전달 | 확정. 쿠키가 만료됐는데 플래그가 남는 경우(웹이 401을 받으면 플래그를 지우는 보정)는 별도 확인 필요 |
 
 ## 구현 순서와 의존성
 1. API 계약 표 승인 (`확정` 행: C-2)
@@ -70,16 +70,16 @@
 | ID | 제목 | 영역 | F-ID / AC | 수정 경로 | 선행 | 검증 방법 | Linear |
 |---|---|---|---|---|---|---|---|
 | T-F01-00 | 웹 공통 준비: API 클라이언트, `{name,message}` 에러 파서, 인증 쿼리 키·엔드포인트 상수, auth Zod 스키마 | FE-web | F-01~F-04 | frontend/apps/web/src/lib/**, frontend/apps/web/src/components/features/auth/constants/**, frontend/apps/web/src/components/features/auth/schemas/** | 계약 C-2 확정 | cd frontend && pnpm lint && pnpm check-types | MEO-44 |
-| T-F01-01 | 네이티브 스플래시와 시작 분기(온보딩 또는 홈) | FE-mobile | F-01 | frontend/apps/mobile/src/** | 보류: 로그인 상태 유지 방식, 스플래시 분기 조건 | 수동 확인: 시뮬레이터. cd frontend && pnpm lint && pnpm check-types | MEO-45 |
+| T-F01-01 | 네이티브 스플래시와 시작 분기(온보딩 또는 홈) | FE-mobile | F-01 | frontend/apps/mobile/src/** | 보류: 스플래시 분기 조건 | 수동 확인: 시뮬레이터. cd frontend && pnpm lint && pnpm check-types | MEO-45 |
 | T-F01-98 | MSW 구성: 별도 구현 없음. `msw` 설치와 `NEXT_PUBLIC_API_MOCKING` 구성은 MEO-38(PR #25)에서 한다 | FE-web | - | - | T-F01-00 | MEO-38 머지로 대체. 인증 API 핸들러(`handlers/auth.ts`)는 각 FE Task가 계약 표 기준으로 만든다 | MEO-38 (연결) |
 | T-F02-01 | 온보딩 3장 슬라이드(인디케이터, 카피, 마지막 장 `멋토 시작하기`) | FE-web | F-02 AC1 | frontend/apps/web/src/app/onboarding/**, frontend/apps/web/src/components/features/onboarding/** | T-F01-00 | cd frontend && pnpm lint && pnpm check-types. AC는 수동 확인(스토리 도구 미설치) | MEO-50 |
 | T-F03-01 | `Member` Entity·Repository·마이그레이션 (스키마 승인 필요) | BE | F-03 | backend/src/main/java/com/meotto/api/domain/member/** | 데이터 모델 승인 | cd backend && ./gradlew spotlessCheck checkstyleMain test | MEO-46 |
 | T-F03-02 | 소셜 로그인 API(카카오·Apple)와 토큰 발급 | BE | F-03 AC2 | backend/src/main/java/com/meotto/api/domain/auth/**, backend/src/main/java/com/meotto/api/global/security/** | T-F03-01 | cd backend && ./gradlew spotlessCheck checkstyleMain test | MEO-26 (연결, 완료) |
 | T-F03-03 | 아이디 랜덤 제안 API(C-2) | BE | F-03 | backend/src/main/java/com/meotto/api/domain/member/** | T-F03-01, 계약 C-2 확정 | cd backend && ./gradlew spotlessCheck checkstyleMain test | MEO-51 |
 | T-F03-04 | 가입 프로필 완료 API(C-3) 아이디 유일성 검증 | BE | F-03 | backend/src/main/java/com/meotto/api/domain/member/** | T-F03-01, 보류: 닉네임 길이/허용 문자 | cd backend && ./gradlew spotlessCheck checkstyleMain test | MEO-52 |
-| T-F03-05 | 로그인 화면(3개 소셜 버튼)과 로그인 성공 후 홈 이동 | FE-web | F-03 AC2 | frontend/apps/web/src/app/login/**, frontend/apps/web/src/components/features/auth/** | T-F01-98, 보류: 로그인 상태 유지 방식 | cd frontend && pnpm lint && pnpm check-types. 수동 확인: MSW 목 | MEO-54 |
+| T-F03-05 | 로그인 화면(3개 소셜 버튼)과 로그인 성공 후 홈 이동 | FE-web | F-03 AC2 | frontend/apps/web/src/app/login/**, frontend/apps/web/src/components/features/auth/**, frontend/apps/web/src/lib/bridge/** | T-F01-98 | cd frontend && pnpm lint && pnpm check-types. 수동 확인: MSW 목 | MEO-54 |
 | T-F03-06 | 신규 가입 프로필 입력 화면(닉네임, 아이디 placeholder, 사진 선택) | FE-web | F-03 | frontend/apps/web/src/app/signup/**, frontend/apps/web/src/components/features/auth/** | T-F01-98, T-F03-05, 보류: 닉네임 제한, 가입 실패 흐름 | cd frontend && pnpm lint && pnpm check-types. 수동 확인: MSW 목 | MEO-57 |
-| T-F03-07 | 소셜 SDK 연동과 토큰 보관 브리지 | FE-mobile | F-03 | frontend/apps/mobile/src/** | 보류: 로그인 상태 유지 방식 | 수동 확인: 실기기. cd frontend && pnpm lint && pnpm check-types | MEO-47 |
+| T-F03-07 | 소셜 SDK 연동과 토큰 보관 브리지 | FE-mobile | F-03 | frontend/apps/mobile/src/** | 보류: 소셜 토큰 요청 브리지 계약 | 수동 확인: 실기기. cd frontend && pnpm lint && pnpm check-types | MEO-47 |
 | T-F04-01 | 공유 링크 해석 API(C-4)와 `ShareLink` Entity | BE | F-04 AC3 | backend/src/main/java/com/meotto/api/domain/sharelink/** | T-F03-01, 보류: 공유 링크 형식·무효 처리 | cd backend && ./gradlew spotlessCheck checkstyleMain test | MEO-53 |
 | T-F04-02 | 공유 링크 진입 라우트에서 토마토 보내기(F-24)로 이동 | FE-web | F-04 AC3 | frontend/apps/web/src/app/(public)/** | T-F01-98, 보류: 공유 링크 형식 | cd frontend && pnpm lint && pnpm check-types. 수동 확인: MSW 목 | MEO-55 |
 | T-F04-03 | 딥링크 수신과 앱 설치 여부 분기(앱 로그인 또는 앱스토어) | FE-mobile | F-04, home F-16 | frontend/apps/mobile/src/** | 보류: 공유 링크 형식, 앱 설치 감지 방식 | 수동 확인: 실기기. cd frontend && pnpm lint && pnpm check-types | MEO-48 |
@@ -88,7 +88,6 @@
 AC 연결: F-02 AC1 → T-F02-01. F-03 AC2 → T-F03-02, T-F03-05. F-04 AC3 → T-F04-01, T-F04-02. 연결되지 않은 AC 없음. F-01에는 AC가 없다(분기 조건이 보류라 AC 작성 불가).
 
 ## 보류 질문
-- 로그인 상태 유지 방식과 토큰 보관 위치 (Spec Open Questions 1)
 - 스플래시 이후 분기 조건(로그인·온보딩 본 여부)
 - 닉네임 길이와 허용 문자, 사진 업로드 방식 (`mypage-settings`와 공유). 아이디(handle) 규칙은 확정됨: 3~30자, 영문(대소문자)/숫자/마침표(`.`)/언더스코어(`_`), 마침표 연속·시작·끝 금지 (인스타그램 아이디 형식 참고, DB는 `utf8mb4_unicode_ci`로 대소문자 구분 없이 유일성 검사)
 - 로그인 취소·실패·소셜 계정 통합 여부
