@@ -28,6 +28,6 @@ jobs:
           AFTER_SHA: ${{ github.sha }}
           COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
           LINEAR_API_TOKEN: ${{ secrets.LINEAR_API_TOKEN }}
-          CONTRACT_DISCORD_WEBHOOK_URL: ${{ secrets.CONTRACT_DISCORD_WEBHOOK_URL }}
+          PLAN_DIFF_DISCORD_WEBHOOK_URL: ${{ secrets.PLAN_DIFF_DISCORD_WEBHOOK_URL }}
           CONTRACT_MENTION_DISCORD_USER_ID: ${{ vars.CONTRACT_MENTION_DISCORD_USER_ID }}
         run: node .github/scripts/detect-contract-confirmation.mjs
