@@ -49,7 +49,7 @@ const OnboardingCarousel = ({
             <span className="text-tomato">{slide.titleHighlight}</span>
             {slide.titleAfter}
           </h1>
-          <p className="text-body-m leading-6.25 whitespace-pre-line text-gray-500">
+          <p className="text-body-m leading-6.25 text-gray-500">
             {slide.description}
           </p>
         </div>
