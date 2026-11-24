@@ -10,7 +10,7 @@ const afterSha = requireEnv("AFTER_SHA");
 const commitMessage = requireEnv("COMMIT_MESSAGE");
 const repo = requireEnv("GITHUB_REPOSITORY");
 const linearToken = requireEnv("LINEAR_API_TOKEN");
-const discordWebhookUrl = requireEnv("CONTRACT_DISCORD_WEBHOOK_URL");
+const discordWebhookUrl = requireEnv("PLAN_DIFF_DISCORD_WEBHOOK_URL");
 const mentionUserId = requireEnv("CONTRACT_MENTION_DISCORD_USER_ID");
 
 function requireEnv(name) {
