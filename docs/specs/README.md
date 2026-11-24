@@ -3,6 +3,7 @@
 기능 구현 전에 이 파일만 읽고, 작업 대상 기능 파일만 추가로 읽는다.
 
 > 출처: 최신 Figma fileKey `TlVECAVRVNZgFtfnZ5aUG8` 노드 `7931:5109`("11/09" 섹션: 온보딩, 로그인, 내 칭찬판/배지, 친구추가 플로우, 잠금화면 알림). 이전: fileKey `C2yDQcJ805c9p8HN5lqtZz` 노드 `18:61`("11/02" 섹션), 그 전: 같은 파일 노드 `1:37` ("10/26" 섹션), fileKey `TlVECAVRVNZgFtfnZ5aUG8` 노드 `7615:2128` ("10/12" 섹션).
+> Figma 디자인 페이지: [TIMO_UXUI디자인](https://www.figma.com/design/TlVECAVRVNZgFtfnZ5aUG8/TIMO_UXUI%EB%94%94%EC%9E%90%EC%9D%B8?node-id=5009-2210). 디자이너가 매주 날짜 제목(`11/09` 식)의 프레임을 추가한다. 제목이 업데이트 날짜이므로 가장 최근 날짜부터 과거 순으로 찾는다. 구현 시점에 이 페이지를 읽고 노드 ID는 문서에 적지 않는다.
 > 기준 버전은 파일마다 다를 수 있으니 각 파일 상단의 `Figma 섹션`을 확인한다.
 > 상태: 초안. Figma에서 읽은 내용만 기록했고, 미확정 항목은 각 파일의 Open Questions에 **[논의 필요]**로 분리함.
 
