@@ -84,6 +84,14 @@ public class MemberEntity extends BaseEntity {
 		this.profileImageUrl = profileImageUrl;
 	}
 
+	public void updateNotificationEnabled(Boolean notificationEnabled) {
+		this.notificationEnabled = notificationEnabled;
+	}
+
+	public void updateBoardPublic(Boolean boardPublic) {
+		this.boardPublic = boardPublic;
+	}
+
 	public Member toModel() {
 		return new Member(
 			getId(),

@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.meotto.api.domain.member.application.service.MemberService;
 import com.meotto.api.domain.member.presentation.request.UpdateProfileRequest;
+import com.meotto.api.domain.member.presentation.request.UpdateSettingsRequest;
 import com.meotto.api.domain.member.presentation.response.HandleSuggestionResponse;
 import com.meotto.api.domain.member.presentation.response.MemberResponse;
 import com.meotto.api.domain.member.presentation.response.ProfileImageUploadResponse;
@@ -55,5 +56,14 @@ public class MemberController {
 		@RequestBody
 		UpdateProfileRequest request) {
 		memberService.updateProfile(request);
+	}
+
+	@Operation(summary = "설정 변경")
+	@PatchMapping("/me/settings")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void updateSettings(
+		@RequestBody
+		UpdateSettingsRequest request) {
+		memberService.updateSettings(request);
 	}
 }

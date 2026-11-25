@@ -22,6 +22,7 @@ import com.meotto.api.domain.member.domain.model.enums.OAuthProvider;
 import com.meotto.api.domain.member.domain.repository.MemberRepository;
 import com.meotto.api.domain.member.exception.MemberErrorCode;
 import com.meotto.api.domain.member.presentation.request.UpdateProfileRequest;
+import com.meotto.api.domain.member.presentation.request.UpdateSettingsRequest;
 import com.meotto.api.global.exception.BusinessException;
 import com.meotto.api.global.infrastructure.file.FileStorageService;
 import com.meotto.api.global.security.context.SecurityUtil;
@@ -155,6 +156,36 @@ class MemberServiceTest {
 			mocked.when(SecurityUtil::getCurrentUserId).thenReturn(1L);
 
 			assertThatThrownBy(() -> memberService.updateProfile(new UpdateProfileRequest("닉네임", null)))
+				.isInstanceOf(BusinessException.class)
+				.satisfies(e -> assertThat(((BusinessException)e).getErrorCode())
+					.isEqualTo(MemberErrorCode.MEMBER_NOT_FOUND));
+		}
+	}
+
+	@Test
+	void updateSettings_보낸_필드만_변경된다() {
+		MemberEntity member = MemberEntity.from(
+			Member.create("닉네임", null, OAuthProvider.KAKAO, "provider-id"));
+		when(memberRepository.findByIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(member));
+
+		try (MockedStatic<SecurityUtil> mocked = mockStatic(SecurityUtil.class)) {
+			mocked.when(SecurityUtil::getCurrentUserId).thenReturn(1L);
+
+			memberService.updateSettings(new UpdateSettingsRequest(false, null));
+		}
+
+		assertThat(member.getNotificationEnabled()).isFalse();
+		assertThat(member.getBoardPublic()).isNull();
+	}
+
+	@Test
+	void updateSettings_회원이_없으면_404_예외() {
+		when(memberRepository.findByIdAndDeletedAtIsNull(1L)).thenReturn(Optional.empty());
+
+		try (MockedStatic<SecurityUtil> mocked = mockStatic(SecurityUtil.class)) {
+			mocked.when(SecurityUtil::getCurrentUserId).thenReturn(1L);
+
+			assertThatThrownBy(() -> memberService.updateSettings(new UpdateSettingsRequest(true, null)))
 				.isInstanceOf(BusinessException.class)
 				.satisfies(e -> assertThat(((BusinessException)e).getErrorCode())
 					.isEqualTo(MemberErrorCode.MEMBER_NOT_FOUND));
