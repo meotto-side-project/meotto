@@ -21,6 +21,8 @@ Figma 섹션: 스플래시, 온보딩, 로그인
 - 온보딩 마지막 장(3번째)에서만 `멋토 시작하기`가 노출되고, 누르면 로그인 화면으로 이동한다.
 - 로그인 성공 시 회원 홈([home.md](home.md))으로 이동한다.
 - 칭찬 요청 공유 링크로 진입 시 토마토 보내기 페이지([send-stamp.md](send-stamp.md) F-24)로 이동하며, 링크를 공유한 친구에게 도장을 보낸다.
+- 가입 시 입력하는 닉네임은 2~10자이며 한글/영문/숫자/공백만 허용한다. 범위를 벗어나거나 이모지·특수문자가 포함되면 가입이 완료되지 않는다 ([mypage-settings.md](mypage-settings.md) 닉네임 규칙과 동일).
+- 가입 시 프로필 사진은 선택이며, 업로드 제한(최대 10MB, jpg/png/webp/heic)은 [mypage-settings.md](mypage-settings.md)의 프로필 사진 업로드 제한과 동일하다.
 
 ## Open Questions
 
