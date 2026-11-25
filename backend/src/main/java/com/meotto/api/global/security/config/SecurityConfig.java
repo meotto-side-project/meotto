@@ -64,6 +64,8 @@ public class SecurityConfig {
 				.requestMatchers("/api/auth/logout").authenticated()
 				.requestMatchers("/api/auth/**").permitAll()
 				.requestMatchers("/api/members/handle-suggestion").permitAll()
+				.requestMatchers(HttpMethod.POST, "/api/members/me/profile-image").authenticated()
+				.requestMatchers(HttpMethod.PATCH, "/api/members/me/profile").authenticated()
 
 				// Admin
 				.requestMatchers("/admin/**").hasRole("ADMIN")

@@ -76,6 +76,14 @@ public class MemberEntity extends BaseEntity {
 			model.role());
 	}
 
+	public void updateNickname(String nickname) {
+		this.nickname = nickname;
+	}
+
+	public void updateProfileImageUrl(String profileImageUrl) {
+		this.profileImageUrl = profileImageUrl;
+	}
+
 	public Member toModel() {
 		return new Member(
 			getId(),
