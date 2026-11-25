@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.meotto.api.domain.member.domain.entity.MemberEntity;
+import com.meotto.api.domain.member.domain.model.Member;
 import com.meotto.api.domain.member.domain.repository.MemberRepository;
 import com.meotto.api.domain.member.exception.MemberErrorCode;
 import com.meotto.api.domain.member.presentation.request.UpdateProfileRequest;
@@ -30,6 +31,13 @@ public class MemberService {
 	private final MemberRepository memberRepository;
 	private final FileStorageService fileStorageService;
 	private final SecureRandom random = new SecureRandom();
+
+	public Member getMe() {
+		Long userId = SecurityUtil.getCurrentUserId();
+		return memberRepository.findByIdAndDeletedAtIsNull(userId)
+			.map(MemberEntity::toModel)
+			.orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
+	}
 
 	public String uploadProfileImage(MultipartFile file) {
 		return fileStorageService.storeImage(file);

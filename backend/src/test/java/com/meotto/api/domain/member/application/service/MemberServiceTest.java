@@ -59,6 +59,36 @@ class MemberServiceTest {
 	}
 
 	@Test
+	void getMe_로그인한_회원이면_정보를_반환한다() {
+		MemberEntity member = MemberEntity.from(
+			Member.create("닉네임", "https://example.com/a.jpg", OAuthProvider.KAKAO, "provider-id"));
+		when(memberRepository.findByIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(member));
+
+		try (MockedStatic<SecurityUtil> mocked = mockStatic(SecurityUtil.class)) {
+			mocked.when(SecurityUtil::getCurrentUserId).thenReturn(1L);
+
+			Member result = memberService.getMe();
+
+			assertThat(result.nickname()).isEqualTo("닉네임");
+			assertThat(result.profileImageUrl()).isEqualTo("https://example.com/a.jpg");
+		}
+	}
+
+	@Test
+	void getMe_회원이_없으면_404_예외() {
+		when(memberRepository.findByIdAndDeletedAtIsNull(1L)).thenReturn(Optional.empty());
+
+		try (MockedStatic<SecurityUtil> mocked = mockStatic(SecurityUtil.class)) {
+			mocked.when(SecurityUtil::getCurrentUserId).thenReturn(1L);
+
+			assertThatThrownBy(() -> memberService.getMe())
+				.isInstanceOf(BusinessException.class)
+				.satisfies(e -> assertThat(((BusinessException)e).getErrorCode())
+					.isEqualTo(MemberErrorCode.MEMBER_NOT_FOUND));
+		}
+	}
+
+	@Test
 	void uploadProfileImage_FileStorageService에_위임하고_URL을_반환한다() {
 		MockMultipartFile file = new MockMultipartFile("file", "a.jpg", "image/jpeg", "data".getBytes());
 		when(fileStorageService.storeImage(file))
