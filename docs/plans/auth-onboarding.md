@@ -11,12 +11,14 @@
 |---|---|---|---|
 | send-stamp (F-24) | 소프트 | 미작성(순서상 이후) | 공유 링크 진입 후 이동할 토마토 보내기 라우트가 있다. 라우트 경로는 `send-stamp` Plan이 정한다. 선행 방향은 `send-stamp`의 `T-F24-02`가 `T-F04-02`를 선행으로 두는 한쪽뿐이다(순환 방지). `T-F04-02`는 이동할 경로를 가정으로 두고 먼저 만든다 |
 | home (F-10~F-12) | 소프트 | 미작성(순서상 이후) | 로그인 성공 후 이동할 회원 홈 라우트(`/`)가 있다 |
+| mypage-settings (`T-F40-04`, C-1, C-3) | 소프트 | approved, BE 일부 구현됨 | 가입 프로필 설정 화면이 `GET /api/members/me`(C-1), `POST /api/members/me/profile-image`(C-3)와 사진 선택 브리지(`T-F40-04`)를 같이 쓴다. `mypage-settings`가 이 Plan을 하드 선행으로 두므로 이 Plan 쪽은 소프트로만 걸고, `T-F40-04`의 선행에는 이 Plan의 Task를 두지 않는다(순환 방지) |
 | design-system | 하드(문서) | 구현 대상 아님 | 색상·타이포·버튼 토큰은 `docs/specs/design-system.md` 기준으로 쓴다 |
 
 ## 결정 사항
-- 닉네임의 길이·허용 문자 제한을 확정한다: 2~10자, 한글/영문/숫자/공백만 허용(이모지·특수문자 금지). `mypage-settings` Plan에서 먼저 확정한 규칙과 동일하다(`MemberErrorCode.INVALID_NICKNAME`). 사진 업로드 UI 방식(앨범·카메라)은 여전히 보류다.
+- 닉네임의 길이·허용 문자 제한을 확정한다: 2~10자, 한글/영문/숫자/공백만 허용(이모지·특수문자 금지). `mypage-settings` Plan에서 먼저 확정한 규칙과 동일하다(`MemberErrorCode.INVALID_NICKNAME`). 사진 선택은 네이티브 앨범으로 확정한다(아래 항목).
 - 공유 링크 경로 형식을 확정한다: `https://meotto.io.kr/s/{token}`. 토큰 기반 경로라 아이디(handle)를 노출하지 않는다.
 - 공유 링크 토큰의 무효·만료 처리를 확정한다: **만료 없음**(TTL 없이 영구 유효), **재발급 기능 없음**(MVP 범위에 토큰 재설정 액션을 두지 않음). 회원이 탈퇴(소프트 삭제)하면 그 토큰만 자연히 무효가 된다. 토큰은 회원당 하나(get-or-create 방식으로 발급, `mypage-settings` C-6이 재사용)이며, 생성·보관 비용은 기존 MySQL 컨테이너에 문자열 한 줄을 더하는 수준이라 추가 금전적 비용이 들지 않는다.
+- 가입 프로필 설정 화면(Figma 11/16, Spec 반영): 화면 라벨은 `이름`(서버 필드 `nickname`), 멋토 아이디는 C-2 제안값을 입력창에 미리 채워 보여준다(placeholder 아님, `@` 없음), 사진은 네이티브 사진 선택(앨범)이며 비율 제한은 없다, 가입 `완료` 후 홈으로 이동, 이미 가입을 마친 회원은 접근하면 홈으로 이동, 입력값 오류는 해당 입력창 아래 문구 + 빨간 계열 테두리, 서버 오류(5xx, 네트워크 실패)는 토스트.
 
 ## 기술 설계
 - 인증의 중심은 `Member`다. 소셜 로그인(카카오·Apple, 네이버는 검수 대기로 보류)으로 가입과 로그인을 처리하고, 응답의 `needsProfileSetup`으로 프로필 입력 화면 진입 여부를 가른다. 신규 회원은 `C-3`으로 프로필을 완료해야 가입이 끝난다.
@@ -25,12 +27,15 @@
 - 아이디(`@아이디`) 랜덤 제안은 가입 전에 호출되는 `C-2`가 담당한다. 아이디 유일성은 `C-3`에서 DB 유니크 제약과 서비스 검증으로 보장한다.
 - 가입 프로필 입력 화면의 사진 선택은 `mypage-settings` `POST /api/members/me/profile-image`를 그대로 재사용한다. FE가 사진을 먼저 그 API로 업로드해 `imageUrl`을 받고, 그 값을 `C-3`의 `profileImageUrl`에 담아 보낸다. 이 엔드포인트는 로그인(인증)이 필요한데, 소셜 로그인(`C-1`) 시점에 신규 회원도 이미 토큰이 발급되므로(아래 "토큰 전달 방식 확정") 프로필 입력 화면에서도 인증된 상태로 호출할 수 있다.
 - **토큰 전달 방식 확정**: `access_token`/`refresh_token` 둘 다 HttpOnly·Secure·SameSite=None 쿠키로 전달한다. 응답 본문에는 토큰 값이 들어가지 않는다 (`global/security/jwt`, `cookie` 기존 구현 그대로). `httpOnly` 쿠키는 클라이언트 JS/네이티브가 값을 직접 읽을 수 없으므로, 네이티브 보안 저장소로 토큰 "값"을 옮기는 방식은 애초에 불가능하다 — 네이티브 쪽은 웹뷰의 쿠키 저장소가 요청마다 자동으로 쿠키를 붙이는 것에 의존하게 된다. 로그인 상태를 어디에 "보관"할지(웹뷰 쿠키 vs 네이티브 보안 저장소)는 이 제약을 반영해 FE가 다시 검토해야 하는 Spec의 미해결 질문으로 남긴다.
+- **가입 완료 판단(제안, BE 확인 필요)**: `C-1`의 `isNewMember`는 회원이 처음 만들어진 호출에서만 `true`이고, 회원은 소셜 로그인 직후 `handle` 없이 생성된다. 그래서 프로필 입력 중 이탈 후 재로그인하면 `false`가 와 가입 미완료 회원이 홈으로 들어갈 수 있다. FE는 `isNewMember`가 아니라 `mypage-settings` C-1(`GET /api/members/me`)의 `handle`이 비었는지로 가입 완료 여부를 판단한다. `handle`이 비어 있으면 프로필 설정 화면으로, 있으면 홈으로 보낸다. 같은 조회로 프로필 설정 화면의 이름(카카오 닉네임 또는 애플 기본값)과 사진 초기값도 채운다.
+- **프로필 설정 화면 접근 가드**: 라우트 진입 시 위 조회로 가입 완료 회원이면 홈으로 이동한다.
+- **오류 처리(FE)**: `INVALID_NICKNAME`(400)은 이름 입력창, `HANDLE_DUPLICATED`(409)·`INVALID_HANDLE`(400)은 아이디 입력창 아래에 문구와 빨간 테두리로 보여준다. 5xx와 네트워크 실패는 토스트로 안내하고 입력값은 유지한다. `ALREADY_SIGNED_UP`(409)은 동시 가입이나 연타로만 생기므로 가입이 이미 끝난 것으로 보고 홈으로 이동한다.
 - 스플래시는 웹뷰가 뜨기 전에 보여야 하므로 네이티브(`FE-mobile`)다. 온보딩·로그인 화면은 웹(`FE-web`)이다. 공유 링크 진입(F-04)은 일반 브라우저에서도 열려야 하므로 웹이다.
 - 앱 설치 여부 분기, 딥링크 처리는 네이티브 몫이다(`T-F04-03`).
 
 ## 프론트엔드 범위
 - web: 온보딩 3장, 로그인 화면, 가입 프로필 입력 화면, 공유 링크 진입 라우트, 공통 API 클라이언트·인증 상태, MSW 구성(저장소 전체에서 한 번)
-- mobile: 네이티브 스플래시와 시작 분기, 소셜 로그인 SDK 연동(필요 시)과 토큰 보관 브리지, 딥링크·앱스토어 분기
+- mobile: 네이티브 스플래시와 시작 분기, 소셜 로그인 SDK 연동(필요 시)과 토큰 보관 브리지, 딥링크·앱스토어 분기, 프로필 사진 네이티브 선택 브리지(`mypage-settings`의 `T-F40-04`가 담당, 가입 화면도 같은 브리지를 쓴다)
 
 ## 백엔드 범위
 - 도메인/패키지: `domain/member`(회원 Entity, 아이디 제안·중복 검증), `domain/auth`(소셜 로그인, 토큰 발급), `domain/sharelink`(공유 링크 해석)
@@ -58,6 +63,8 @@
 |---|---|---|---|---|
 | 웹 → 네이티브 | `AUTH_LOGIN_SUCCESS` | `{ ... }` | 로그인 성공 알림. **주의**: 토큰이 HttpOnly 쿠키라 웹뷰 JS가 토큰 값 자체를 읽어 payload에 넣을 수 없음 — "토큰 보관 요청"이 아니라 "로그인 성공 사실"만 알리는 용도로 재검토 필요 | 보류: 로그인 상태 유지 방식 |
 | 네이티브 → 웹 | `AUTH_STATE` | `{ loggedIn }` | 시작 시 로그인 상태 전달 | 보류: 로그인 상태 유지 방식 |
+| 웹 → 네이티브 | `PICK_PROFILE_IMAGE` | `{ ... }` | 프로필 사진 네이티브 선택(앨범) 요청. 가입 프로필 설정 화면과 프로필 변경 시트가 같이 쓴다 | 보류: 계약 미정 |
+| 네이티브 → 웹 | `PROFILE_IMAGE_PICKED` | `{ ... }` | 선택 결과 전달. 선택한 파일을 웹이 어떻게 받아 `profile-image`로 올릴지(파일 전달 방식, 네이티브 직접 업로드 여부)가 정해지지 않았다. 취소 결과도 필요 | 보류: 파일 전달 방식 |
 
 ## 구현 순서와 의존성
 1. API 계약 표 승인 (`확정` 행: C-1, C-2, C-3, C-4)
@@ -83,7 +90,7 @@
 | T-F03-03 | 아이디 랜덤 제안 API(C-2) | BE | F-03 | backend/src/main/java/com/meotto/api/domain/member/** | T-F03-01, 계약 C-2 확정 | cd backend && ./gradlew spotlessCheck checkstyleMain test | MEO-51 |
 | T-F03-04 | 가입 프로필 완료 API(C-3) 아이디 유일성 검증 | BE | F-03 | backend/src/main/java/com/meotto/api/domain/member/** | T-F03-01, 계약 C-3 확정 — 구현 완료 | cd backend && ./gradlew spotlessCheck checkstyleMain test | MEO-52 |
 | T-F03-05 | 로그인 화면(3개 소셜 버튼)과 로그인 성공 후 홈 이동 | FE-web | F-03 AC2 | frontend/apps/web/src/app/login/**, frontend/apps/web/src/components/features/auth/** | T-F01-98, 보류: 로그인 상태 유지 방식 | cd frontend && pnpm lint && pnpm check-types. 수동 확인: MSW 목 | MEO-54 |
-| T-F03-06 | 신규 가입 프로필 입력 화면(닉네임, 아이디 placeholder, 사진 선택). 뒤로가기는 로그인 화면으로만 이동(별도 취소 API 없음) | FE-web | F-03 | frontend/apps/web/src/app/signup/**, frontend/apps/web/src/components/features/auth/** | T-F01-98, T-F03-05, 계약 C-3 확정 | cd frontend && pnpm lint && pnpm check-types. 수동 확인: MSW 목 | MEO-57 |
+| T-F03-06 | 신규 가입 프로필 설정 화면(이름, 미리 채운 멋토 아이디, 사진 선택), 입력창 오류 표시, 서버 오류 토스트, 가입 완료 회원 접근 가드. 뒤로가기는 로그인 화면으로만 이동(별도 취소 API 없음) | FE-web | F-03 | frontend/apps/web/src/app/signup/**, frontend/apps/web/src/components/features/auth/** | T-F01-98, T-F03-05, 계약 C-3 확정. 사진 선택 부분은 `mypage-settings`의 `T-F40-04`(소프트, 브리지 계약 보류)에 걸리며 그 전에는 사진 UI를 목으로 둔다 | cd frontend && pnpm lint && pnpm check-types. 수동 확인: MSW 목 | MEO-57 |
 | T-F03-07 | 소셜 SDK 연동과 토큰 보관 브리지 | FE-mobile | F-03 | frontend/apps/mobile/src/** | 보류: 로그인 상태 유지 방식 | 수동 확인: 실기기. cd frontend && pnpm lint && pnpm check-types | MEO-47 |
 | T-F04-01 | 공유 링크 해석 API(C-4)와 `ShareLink` Entity | BE | F-04 AC3 | backend/src/main/java/com/meotto/api/domain/sharelink/** | T-F03-01, 계약 C-4 확정 | cd backend && ./gradlew spotlessCheck checkstyleMain test | MEO-53 |
 | T-F04-02 | 공유 링크 진입 라우트에서 토마토 보내기(F-24)로 이동 | FE-web | F-04 AC3 | frontend/apps/web/src/app/(public)/** | T-F01-98, 링크 경로 형식 확정 | cd frontend && pnpm lint && pnpm check-types. 수동 확인: MSW 목 | MEO-55 |
@@ -95,7 +102,10 @@ AC 연결: F-02 AC1 → T-F02-01. F-03 AC2 → T-F03-02, T-F03-05. F-04 AC3 → 
 ## 보류 질문
 - 로그인 상태 유지 방식과 토큰 보관 위치 (Spec Open Questions 1)
 - 스플래시 이후 분기 조건(로그인·온보딩 본 여부)
-- 프로필 사진 업로드 UI 방식(앨범 선택, 카메라) (`mypage-settings`와 공유). 닉네임 길이/허용 문자, 아이디(handle) 규칙(3~30자, 영문(대소문자)/숫자/마침표(`.`)/언더스코어(`_`), 마침표 연속·시작·끝 금지, DB는 `utf8mb4_unicode_ci`로 대소문자 구분 없이 유일성 검사)은 모두 확정됨
+- 프로필을 마치지 않은 회원이 프로필 설정 관련 API(`me`, `handle-suggestion`, `profile-image`, `signup-profile`, `logout`) 외의 API를 부를 때의 처리(BE가 아직 언급하지 않음, 막지 않으면 FE 가드만으로는 우회 가능)
+- 사진 파일 전달 방식: 네이티브가 고른 사진을 웹이 받아 올릴지 네이티브가 직접 올릴지(위 브리지 표 `PICK_PROFILE_IMAGE` 계약)
+- 오류 문구 원문과 토스트 문구·노출 시간(Figma에 없음, 디자이너 확인)
+- 닉네임 길이/허용 문자, 아이디(handle) 규칙(3~30자, 영문(대소문자)/숫자/마침표(`.`)/언더스코어(`_`), 마침표 연속·시작·끝 금지, DB는 `utf8mb4_unicode_ci`로 대소문자 구분 없이 유일성 검사)은 모두 확정됨
 - 소셜 로그인 팝업 자체의 취소 처리, 소셜 계정 통합(카카오·Apple 등으로 가입한 계정을 하나로 합칠지) 여부. 가입 프로필 입력 중 이탈 후 재로그인했을 때의 처리와 뒤로가기 정책은 확정됨 — "결정 사항" 참고
 - 앱 설치 감지 방식. 공유 링크 경로 형식과 토큰 무효·만료 처리(만료 없음, 재발급 없음, 탈퇴 시에만 무효)는 확정됨 — "결정 사항" 참고
 - 비회원 보내는 사람 이름 설정 여부 (Spec Open Questions 2)
