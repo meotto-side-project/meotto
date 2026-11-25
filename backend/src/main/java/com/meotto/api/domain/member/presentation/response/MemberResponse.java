@@ -10,7 +10,8 @@ public record MemberResponse(
 	String profileImageUrl,
 	Boolean notificationEnabled,
 	Boolean boardPublic,
-	SentPraiseVisibility sentPraiseVisibility) {
+	SentPraiseVisibility sentPraiseVisibility,
+	boolean profileCompleted) {
 
 	public static MemberResponse from(Member member) {
 		return new MemberResponse(
@@ -20,6 +21,7 @@ public record MemberResponse(
 			member.profileImageUrl(),
 			member.notificationEnabled(),
 			member.boardPublic(),
-			member.sentPraiseVisibility());
+			member.sentPraiseVisibility(),
+			member.handle() != null);
 	}
 }

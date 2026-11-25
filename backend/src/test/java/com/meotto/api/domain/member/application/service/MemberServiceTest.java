@@ -25,6 +25,7 @@ import com.meotto.api.domain.member.domain.model.enums.OAuthProvider;
 import com.meotto.api.domain.member.domain.model.enums.SentPraiseVisibility;
 import com.meotto.api.domain.member.domain.repository.MemberRepository;
 import com.meotto.api.domain.member.exception.MemberErrorCode;
+import com.meotto.api.domain.member.presentation.request.SignupProfileRequest;
 import com.meotto.api.domain.member.presentation.request.UpdateProfileRequest;
 import com.meotto.api.domain.member.presentation.request.UpdateSentPraiseVisibilityRequest;
 import com.meotto.api.domain.member.presentation.request.UpdateSettingsRequest;
@@ -164,6 +165,93 @@ class MemberServiceTest {
 			mocked.when(SecurityUtil::getCurrentUserId).thenReturn(1L);
 
 			assertThatThrownBy(() -> memberService.updateProfile(new UpdateProfileRequest("닉네임", null)))
+				.isInstanceOf(BusinessException.class)
+				.satisfies(e -> assertThat(((BusinessException)e).getErrorCode())
+					.isEqualTo(MemberErrorCode.MEMBER_NOT_FOUND));
+		}
+	}
+
+	@Test
+	void completeSignupProfile_유효하면_닉네임과_아이디가_설정된다() {
+		MemberEntity member = MemberEntity.from(
+			Member.create("카카오닉네임", null, OAuthProvider.KAKAO, "provider-id"));
+		when(memberRepository.findByIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(member));
+		when(memberRepository.existsByHandle("meotto_user")).thenReturn(false);
+
+		try (MockedStatic<SecurityUtil> mocked = mockStatic(SecurityUtil.class)) {
+			mocked.when(SecurityUtil::getCurrentUserId).thenReturn(1L);
+
+			memberService.completeSignupProfile(
+				new SignupProfileRequest("새닉네임", "meotto_user", "https://example.com/a.jpg"));
+		}
+
+		assertThat(member.getNickname()).isEqualTo("새닉네임");
+		assertThat(member.getHandle()).isEqualTo("meotto_user");
+		assertThat(member.getProfileImageUrl()).isEqualTo("https://example.com/a.jpg");
+	}
+
+	@Test
+	void completeSignupProfile_이미_가입했으면_예외를_던진다() {
+		MemberEntity member = MemberEntity.from(
+			Member.create("닉네임", null, OAuthProvider.KAKAO, "provider-id"));
+		member.updateHandle("already_signed_up");
+		when(memberRepository.findByIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(member));
+
+		try (MockedStatic<SecurityUtil> mocked = mockStatic(SecurityUtil.class)) {
+			mocked.when(SecurityUtil::getCurrentUserId).thenReturn(1L);
+
+			assertThatThrownBy(() -> memberService.completeSignupProfile(
+				new SignupProfileRequest("새닉네임", "new_handle", null)))
+				.isInstanceOf(BusinessException.class)
+				.satisfies(e -> assertThat(((BusinessException)e).getErrorCode())
+					.isEqualTo(MemberErrorCode.ALREADY_SIGNED_UP));
+		}
+	}
+
+	@Test
+	void completeSignupProfile_아이디_형식이_잘못되면_예외를_던진다() {
+		MemberEntity member = MemberEntity.from(
+			Member.create("닉네임", null, OAuthProvider.KAKAO, "provider-id"));
+		when(memberRepository.findByIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(member));
+
+		try (MockedStatic<SecurityUtil> mocked = mockStatic(SecurityUtil.class)) {
+			mocked.when(SecurityUtil::getCurrentUserId).thenReturn(1L);
+
+			assertThatThrownBy(() -> memberService.completeSignupProfile(
+				new SignupProfileRequest("닉네임", ".bad..handle.", null)))
+				.isInstanceOf(BusinessException.class)
+				.satisfies(e -> assertThat(((BusinessException)e).getErrorCode())
+					.isEqualTo(MemberErrorCode.INVALID_HANDLE));
+		}
+	}
+
+	@Test
+	void completeSignupProfile_아이디가_중복이면_예외를_던진다() {
+		MemberEntity member = MemberEntity.from(
+			Member.create("닉네임", null, OAuthProvider.KAKAO, "provider-id"));
+		when(memberRepository.findByIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(member));
+		when(memberRepository.existsByHandle("duplicated")).thenReturn(true);
+
+		try (MockedStatic<SecurityUtil> mocked = mockStatic(SecurityUtil.class)) {
+			mocked.when(SecurityUtil::getCurrentUserId).thenReturn(1L);
+
+			assertThatThrownBy(() -> memberService.completeSignupProfile(
+				new SignupProfileRequest("닉네임", "duplicated", null)))
+				.isInstanceOf(BusinessException.class)
+				.satisfies(e -> assertThat(((BusinessException)e).getErrorCode())
+					.isEqualTo(MemberErrorCode.HANDLE_DUPLICATED));
+		}
+	}
+
+	@Test
+	void completeSignupProfile_회원이_없으면_404_예외() {
+		when(memberRepository.findByIdAndDeletedAtIsNull(1L)).thenReturn(Optional.empty());
+
+		try (MockedStatic<SecurityUtil> mocked = mockStatic(SecurityUtil.class)) {
+			mocked.when(SecurityUtil::getCurrentUserId).thenReturn(1L);
+
+			assertThatThrownBy(() -> memberService.completeSignupProfile(
+				new SignupProfileRequest("닉네임", "handle", null)))
 				.isInstanceOf(BusinessException.class)
 				.satisfies(e -> assertThat(((BusinessException)e).getErrorCode())
 					.isEqualTo(MemberErrorCode.MEMBER_NOT_FOUND));

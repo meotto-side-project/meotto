@@ -65,6 +65,7 @@ public class SecurityConfig {
 				.requestMatchers("/api/auth/**").permitAll()
 				.requestMatchers("/api/members/handle-suggestion").permitAll()
 				.requestMatchers(HttpMethod.GET, "/api/members/me").authenticated()
+				.requestMatchers(HttpMethod.POST, "/api/members/me/signup-profile").authenticated()
 				.requestMatchers(HttpMethod.POST, "/api/members/me/profile-image").authenticated()
 				.requestMatchers(HttpMethod.PATCH, "/api/members/me/profile").authenticated()
 				.requestMatchers(HttpMethod.PATCH, "/api/members/me/settings").authenticated()
