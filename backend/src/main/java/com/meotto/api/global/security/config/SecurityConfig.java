@@ -69,6 +69,7 @@ public class SecurityConfig {
 				.requestMatchers(HttpMethod.PATCH, "/api/members/me/profile").authenticated()
 				.requestMatchers(HttpMethod.PATCH, "/api/members/me/settings").authenticated()
 				.requestMatchers(HttpMethod.PATCH, "/api/members/me/settings/sent-praise-visibility").authenticated()
+				.requestMatchers(HttpMethod.DELETE, "/api/members/me").authenticated()
 
 				// Admin
 				.requestMatchers("/admin/**").hasRole("ADMIN")
