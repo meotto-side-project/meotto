@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.meotto.api.domain.member.application.service.MemberService;
 import com.meotto.api.domain.member.presentation.request.UpdateProfileRequest;
+import com.meotto.api.domain.member.presentation.request.UpdateSentPraiseVisibilityRequest;
 import com.meotto.api.domain.member.presentation.request.UpdateSettingsRequest;
 import com.meotto.api.domain.member.presentation.response.HandleSuggestionResponse;
 import com.meotto.api.domain.member.presentation.response.MemberResponse;
@@ -65,5 +66,14 @@ public class MemberController {
 		@RequestBody
 		UpdateSettingsRequest request) {
 		memberService.updateSettings(request);
+	}
+
+	@Operation(summary = "보낸 칭찬 공개 설정 변경")
+	@PatchMapping("/me/settings/sent-praise-visibility")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void updateSentPraiseVisibility(
+		@RequestBody
+		UpdateSentPraiseVisibilityRequest request) {
+		memberService.updateSentPraiseVisibility(request);
 	}
 }

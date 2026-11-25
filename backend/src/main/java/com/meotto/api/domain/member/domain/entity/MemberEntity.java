@@ -92,6 +92,10 @@ public class MemberEntity extends BaseEntity {
 		this.boardPublic = boardPublic;
 	}
 
+	public void updateSentPraiseVisibility(SentPraiseVisibility sentPraiseVisibility) {
+		this.sentPraiseVisibility = sentPraiseVisibility;
+	}
+
 	public Member toModel() {
 		return new Member(
 			getId(),

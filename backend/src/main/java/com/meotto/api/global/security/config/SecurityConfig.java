@@ -68,6 +68,7 @@ public class SecurityConfig {
 				.requestMatchers(HttpMethod.POST, "/api/members/me/profile-image").authenticated()
 				.requestMatchers(HttpMethod.PATCH, "/api/members/me/profile").authenticated()
 				.requestMatchers(HttpMethod.PATCH, "/api/members/me/settings").authenticated()
+				.requestMatchers(HttpMethod.PATCH, "/api/members/me/settings/sent-praise-visibility").authenticated()
 
 				// Admin
 				.requestMatchers("/admin/**").hasRole("ADMIN")
