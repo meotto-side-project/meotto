@@ -12,6 +12,7 @@ import com.meotto.api.domain.member.domain.model.Member;
 import com.meotto.api.domain.member.domain.repository.MemberRepository;
 import com.meotto.api.domain.member.exception.MemberErrorCode;
 import com.meotto.api.domain.member.presentation.request.UpdateProfileRequest;
+import com.meotto.api.domain.member.presentation.request.UpdateSettingsRequest;
 import com.meotto.api.global.exception.BusinessException;
 import com.meotto.api.global.infrastructure.file.FileStorageService;
 import com.meotto.api.global.security.context.SecurityUtil;
@@ -33,10 +34,7 @@ public class MemberService {
 	private final SecureRandom random = new SecureRandom();
 
 	public Member getMe() {
-		Long userId = SecurityUtil.getCurrentUserId();
-		return memberRepository.findByIdAndDeletedAtIsNull(userId)
-			.map(MemberEntity::toModel)
-			.orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
+		return getCurrentMemberEntity().toModel();
 	}
 
 	public String uploadProfileImage(MultipartFile file) {
@@ -45,9 +43,7 @@ public class MemberService {
 
 	@Transactional
 	public void updateProfile(UpdateProfileRequest request) {
-		Long userId = SecurityUtil.getCurrentUserId();
-		MemberEntity member = memberRepository.findByIdAndDeletedAtIsNull(userId)
-			.orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
+		MemberEntity member = getCurrentMemberEntity();
 
 		if (request.nickname() != null) {
 			validateNickname(request.nickname());
@@ -56,6 +52,24 @@ public class MemberService {
 		if (request.profileImageUrl() != null) {
 			member.updateProfileImageUrl(request.profileImageUrl());
 		}
+	}
+
+	@Transactional
+	public void updateSettings(UpdateSettingsRequest request) {
+		MemberEntity member = getCurrentMemberEntity();
+
+		if (request.notificationEnabled() != null) {
+			member.updateNotificationEnabled(request.notificationEnabled());
+		}
+		if (request.boardPublic() != null) {
+			member.updateBoardPublic(request.boardPublic());
+		}
+	}
+
+	private MemberEntity getCurrentMemberEntity() {
+		Long userId = SecurityUtil.getCurrentUserId();
+		return memberRepository.findByIdAndDeletedAtIsNull(userId)
+			.orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
 	}
 
 	private void validateNickname(String nickname) {
