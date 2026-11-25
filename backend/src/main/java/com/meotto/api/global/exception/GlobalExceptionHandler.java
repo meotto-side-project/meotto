@@ -14,6 +14,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import com.meotto.api.global.infrastructure.notification.ErrorNotificationData;
@@ -122,6 +123,13 @@ public class GlobalExceptionHandler {
 		return ResponseEntity
 			.badRequest()
 			.body(new ErrorResponse("INVALID_REQUEST_BODY", "요청 본문을 읽을 수 없습니다."));
+	}
+
+	@ExceptionHandler(MaxUploadSizeExceededException.class)
+	public ResponseEntity<ErrorResponse> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException ex) {
+		return ResponseEntity
+			.badRequest()
+			.body(new ErrorResponse("INVALID_IMAGE", "빈 파일, 10MB 초과, jpg/png/webp/heic 외 포맷은 업로드할 수 없습니다."));
 	}
 
 	@ExceptionHandler(DataIntegrityViolationException.class)
