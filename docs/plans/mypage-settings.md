@@ -48,7 +48,7 @@
 ## API 계약
 | ID | Method | Path | 인증 | Request | Response | 에러(name) | F-ID | 상태 |
 |---|---|---|---|---|---|---|---|---|
-| C-1 | GET | /api/members/me | 필요 | - | 200 `{ id, nickname, handle, profileImageUrl, notificationEnabled, boardPublic, sentPraiseVisibility }` | - | F-40, F-42, F-43 | 확정 |
+| C-1 | GET | /api/members/me | 필요 | - | 200 `{ id, nickname, handle, profileImageUrl, notificationEnabled, boardPublic, sentPraiseVisibility, profileCompleted }` | - | F-40, F-42, F-43 | 확정 (`profileCompleted`는 `handle != null` — `auth-onboarding`의 가입 이탈·재로그인 처리와 연동, 2026-11-26 추가) |
 | C-2 | PATCH | /api/members/me/profile | 필요 | `{ nickname?, profileImageUrl? }` (둘 다 선택, 보낸 필드만 변경) | 204 | `INVALID_NICKNAME`(400): 2~10자 한글/영문/숫자/공백 외 | F-40 | 확정 |
 | C-3 | POST | /api/members/me/profile-image | 필요 | `multipart/form-data`, part명 `file`. 최대 10MB, `jpg/png/webp/heic`만 허용 | 201 `{ imageUrl }` | `INVALID_IMAGE`(400): 빈 파일/용량 초과/허용 외 포맷 | F-40 | 확정 |
 | C-4 | PATCH | /api/members/me/settings | 필요 | `{ notificationEnabled?, boardPublic? }` | 204 | - | F-42 | 확정 |
