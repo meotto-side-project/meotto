@@ -19,9 +19,11 @@ import org.springframework.mock.web.MockMultipartFile;
 import com.meotto.api.domain.member.domain.entity.MemberEntity;
 import com.meotto.api.domain.member.domain.model.Member;
 import com.meotto.api.domain.member.domain.model.enums.OAuthProvider;
+import com.meotto.api.domain.member.domain.model.enums.SentPraiseVisibility;
 import com.meotto.api.domain.member.domain.repository.MemberRepository;
 import com.meotto.api.domain.member.exception.MemberErrorCode;
 import com.meotto.api.domain.member.presentation.request.UpdateProfileRequest;
+import com.meotto.api.domain.member.presentation.request.UpdateSentPraiseVisibilityRequest;
 import com.meotto.api.domain.member.presentation.request.UpdateSettingsRequest;
 import com.meotto.api.global.exception.BusinessException;
 import com.meotto.api.global.infrastructure.file.FileStorageService;
@@ -186,6 +188,70 @@ class MemberServiceTest {
 			mocked.when(SecurityUtil::getCurrentUserId).thenReturn(1L);
 
 			assertThatThrownBy(() -> memberService.updateSettings(new UpdateSettingsRequest(true, null)))
+				.isInstanceOf(BusinessException.class)
+				.satisfies(e -> assertThat(((BusinessException)e).getErrorCode())
+					.isEqualTo(MemberErrorCode.MEMBER_NOT_FOUND));
+		}
+	}
+
+	@Test
+	void updateSentPraiseVisibility_유효한_값이면_변경된다() {
+		MemberEntity member = MemberEntity.from(
+			Member.create("닉네임", null, OAuthProvider.KAKAO, "provider-id"));
+		when(memberRepository.findByIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(member));
+
+		try (MockedStatic<SecurityUtil> mocked = mockStatic(SecurityUtil.class)) {
+			mocked.when(SecurityUtil::getCurrentUserId).thenReturn(1L);
+
+			memberService.updateSentPraiseVisibility(new UpdateSentPraiseVisibilityRequest("NAME_ONLY"));
+		}
+
+		assertThat(member.getSentPraiseVisibility()).isEqualTo(SentPraiseVisibility.NAME_ONLY);
+	}
+
+	@Test
+	void updateSentPraiseVisibility_허용되지않은_값이면_예외를_던진다() {
+		MemberEntity member = MemberEntity.from(
+			Member.create("닉네임", null, OAuthProvider.KAKAO, "provider-id"));
+		when(memberRepository.findByIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(member));
+
+		try (MockedStatic<SecurityUtil> mocked = mockStatic(SecurityUtil.class)) {
+			mocked.when(SecurityUtil::getCurrentUserId).thenReturn(1L);
+
+			assertThatThrownBy(
+				() -> memberService.updateSentPraiseVisibility(new UpdateSentPraiseVisibilityRequest("FRIENDS_ONLY")))
+				.isInstanceOf(BusinessException.class)
+				.satisfies(e -> assertThat(((BusinessException)e).getErrorCode())
+					.isEqualTo(MemberErrorCode.INVALID_VISIBILITY));
+		}
+	}
+
+	@Test
+	void updateSentPraiseVisibility_null이면_예외를_던진다() {
+		MemberEntity member = MemberEntity.from(
+			Member.create("닉네임", null, OAuthProvider.KAKAO, "provider-id"));
+		when(memberRepository.findByIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(member));
+
+		try (MockedStatic<SecurityUtil> mocked = mockStatic(SecurityUtil.class)) {
+			mocked.when(SecurityUtil::getCurrentUserId).thenReturn(1L);
+
+			assertThatThrownBy(
+				() -> memberService.updateSentPraiseVisibility(new UpdateSentPraiseVisibilityRequest(null)))
+				.isInstanceOf(BusinessException.class)
+				.satisfies(e -> assertThat(((BusinessException)e).getErrorCode())
+					.isEqualTo(MemberErrorCode.INVALID_VISIBILITY));
+		}
+	}
+
+	@Test
+	void updateSentPraiseVisibility_회원이_없으면_404_예외() {
+		when(memberRepository.findByIdAndDeletedAtIsNull(1L)).thenReturn(Optional.empty());
+
+		try (MockedStatic<SecurityUtil> mocked = mockStatic(SecurityUtil.class)) {
+			mocked.when(SecurityUtil::getCurrentUserId).thenReturn(1L);
+
+			assertThatThrownBy(
+				() -> memberService.updateSentPraiseVisibility(new UpdateSentPraiseVisibilityRequest("ALL")))
 				.isInstanceOf(BusinessException.class)
 				.satisfies(e -> assertThat(((BusinessException)e).getErrorCode())
 					.isEqualTo(MemberErrorCode.MEMBER_NOT_FOUND));

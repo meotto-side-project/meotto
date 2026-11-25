@@ -9,9 +9,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.meotto.api.domain.member.domain.entity.MemberEntity;
 import com.meotto.api.domain.member.domain.model.Member;
+import com.meotto.api.domain.member.domain.model.enums.SentPraiseVisibility;
 import com.meotto.api.domain.member.domain.repository.MemberRepository;
 import com.meotto.api.domain.member.exception.MemberErrorCode;
 import com.meotto.api.domain.member.presentation.request.UpdateProfileRequest;
+import com.meotto.api.domain.member.presentation.request.UpdateSentPraiseVisibilityRequest;
 import com.meotto.api.domain.member.presentation.request.UpdateSettingsRequest;
 import com.meotto.api.global.exception.BusinessException;
 import com.meotto.api.global.infrastructure.file.FileStorageService;
@@ -63,6 +65,20 @@ public class MemberService {
 		}
 		if (request.boardPublic() != null) {
 			member.updateBoardPublic(request.boardPublic());
+		}
+	}
+
+	@Transactional
+	public void updateSentPraiseVisibility(UpdateSentPraiseVisibilityRequest request) {
+		MemberEntity member = getCurrentMemberEntity();
+		member.updateSentPraiseVisibility(parseVisibility(request.visibility()));
+	}
+
+	private SentPraiseVisibility parseVisibility(String visibility) {
+		try {
+			return SentPraiseVisibility.valueOf(visibility);
+		} catch (IllegalArgumentException | NullPointerException e) {
+			throw new BusinessException(MemberErrorCode.INVALID_VISIBILITY);
 		}
 	}
 
