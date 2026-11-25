@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.meotto.api.domain.member.application.service.MemberService;
 import com.meotto.api.domain.member.presentation.request.UpdateProfileRequest;
 import com.meotto.api.domain.member.presentation.response.HandleSuggestionResponse;
+import com.meotto.api.domain.member.presentation.response.MemberResponse;
 import com.meotto.api.domain.member.presentation.response.ProfileImageUploadResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,6 +31,12 @@ public class MemberController {
 	@GetMapping("/handle-suggestion")
 	public HandleSuggestionResponse getHandleSuggestion() {
 		return HandleSuggestionResponse.from(memberService.suggestHandle());
+	}
+
+	@Operation(summary = "내 정보 조회")
+	@GetMapping("/me")
+	public MemberResponse getMe() {
+		return MemberResponse.from(memberService.getMe());
 	}
 
 	@Operation(summary = "프로필 사진 업로드")
