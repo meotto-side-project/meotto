@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
@@ -14,8 +15,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockMultipartFile;
 
+import com.meotto.api.domain.auth.application.service.AuthService;
 import com.meotto.api.domain.member.domain.entity.MemberEntity;
 import com.meotto.api.domain.member.domain.model.Member;
 import com.meotto.api.domain.member.domain.model.enums.OAuthProvider;
@@ -40,6 +43,9 @@ class MemberServiceTest {
 
 	@Mock
 	private FileStorageService fileStorageService;
+
+	@Mock
+	private AuthService authService;
 
 	@Test
 	void suggestHandle_중복이없으면_8자리_랜덤_아이디를_반환한다() {
@@ -252,6 +258,38 @@ class MemberServiceTest {
 
 			assertThatThrownBy(
 				() -> memberService.updateSentPraiseVisibility(new UpdateSentPraiseVisibilityRequest("ALL")))
+				.isInstanceOf(BusinessException.class)
+				.satisfies(e -> assertThat(((BusinessException)e).getErrorCode())
+					.isEqualTo(MemberErrorCode.MEMBER_NOT_FOUND));
+		}
+	}
+
+	@Test
+	void withdraw_회원을_소프트_삭제하고_로그아웃한다() {
+		MemberEntity member = MemberEntity.from(
+			Member.create("닉네임", null, OAuthProvider.KAKAO, "provider-id"));
+		when(memberRepository.findByIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(member));
+		MockHttpServletResponse response = new MockHttpServletResponse();
+
+		try (MockedStatic<SecurityUtil> mocked = mockStatic(SecurityUtil.class)) {
+			mocked.when(SecurityUtil::getCurrentUserId).thenReturn(1L);
+
+			memberService.withdraw(response);
+		}
+
+		assertThat(member.isDeleted()).isTrue();
+		verify(authService).logout(response);
+	}
+
+	@Test
+	void withdraw_회원이_없으면_404_예외() {
+		when(memberRepository.findByIdAndDeletedAtIsNull(1L)).thenReturn(Optional.empty());
+		MockHttpServletResponse response = new MockHttpServletResponse();
+
+		try (MockedStatic<SecurityUtil> mocked = mockStatic(SecurityUtil.class)) {
+			mocked.when(SecurityUtil::getCurrentUserId).thenReturn(1L);
+
+			assertThatThrownBy(() -> memberService.withdraw(response))
 				.isInstanceOf(BusinessException.class)
 				.satisfies(e -> assertThat(((BusinessException)e).getErrorCode())
 					.isEqualTo(MemberErrorCode.MEMBER_NOT_FOUND));

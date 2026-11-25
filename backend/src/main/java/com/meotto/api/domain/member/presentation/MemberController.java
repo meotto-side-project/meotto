@@ -1,6 +1,7 @@
 package com.meotto.api.domain.member.presentation;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,6 +21,7 @@ import com.meotto.api.domain.member.presentation.response.MemberResponse;
 import com.meotto.api.domain.member.presentation.response.ProfileImageUploadResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -75,5 +77,12 @@ public class MemberController {
 		@RequestBody
 		UpdateSentPraiseVisibilityRequest request) {
 		memberService.updateSentPraiseVisibility(request);
+	}
+
+	@Operation(summary = "회원탈퇴")
+	@DeleteMapping("/me")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void withdraw(HttpServletResponse response) {
+		memberService.withdraw(response);
 	}
 }

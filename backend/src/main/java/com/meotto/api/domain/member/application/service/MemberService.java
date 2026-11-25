@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.meotto.api.domain.auth.application.service.AuthService;
 import com.meotto.api.domain.member.domain.entity.MemberEntity;
 import com.meotto.api.domain.member.domain.model.Member;
 import com.meotto.api.domain.member.domain.model.enums.SentPraiseVisibility;
@@ -19,6 +20,7 @@ import com.meotto.api.global.exception.BusinessException;
 import com.meotto.api.global.infrastructure.file.FileStorageService;
 import com.meotto.api.global.security.context.SecurityUtil;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -33,6 +35,7 @@ public class MemberService {
 
 	private final MemberRepository memberRepository;
 	private final FileStorageService fileStorageService;
+	private final AuthService authService;
 	private final SecureRandom random = new SecureRandom();
 
 	public Member getMe() {
@@ -80,6 +83,13 @@ public class MemberService {
 		} catch (IllegalArgumentException | NullPointerException e) {
 			throw new BusinessException(MemberErrorCode.INVALID_VISIBILITY);
 		}
+	}
+
+	@Transactional
+	public void withdraw(HttpServletResponse response) {
+		MemberEntity member = getCurrentMemberEntity();
+		member.softDelete();
+		authService.logout(response);
 	}
 
 	private MemberEntity getCurrentMemberEntity() {
