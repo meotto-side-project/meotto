@@ -45,6 +45,9 @@ jwt:
 apple:
   bundle-id: ${APPLE_BUNDLE_ID:com.meotto}
 
+share-link:
+  base-url: ${SHARE_LINK_BASE_URL:https://meotto.io.kr/s}
+
 cookie:
   secure: ${COOKIE_SECURE:true}
   same-site: ${COOKIE_SAME_SITE:None}

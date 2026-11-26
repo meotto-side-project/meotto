@@ -44,7 +44,7 @@
 | 대상 | 변경 | 비고 |
 |---|---|---|
 | `member` 테이블 | 신규: id, provider, provider_id, nickname, handle(유니크), profile_image_url, notification_enabled, board_public, sent_praise_visibility, last_active_at + BaseEntity 컬럼 | 제안. `(provider, provider_id)` 유니크. 설정 컬럼은 `mypage-settings`, `notifications`가 쓰며 기본값은 해당 Plan의 보류 질문에 걸린다. 이 Plan에서는 컬럼만 만든다 |
-| `share_link` 테이블 | 신규: id, member_id, token(유니크) | 제안. 링크 경로 형식 확정(`https://meotto.io.kr/s/{token}`). 회원당 토큰 하나, TTL 없음, 재발급 없음 — 회원 탈퇴 시에만 자연히 무효 |
+| `share_link` 테이블 | 신규: id, member_id(유니크), token(유니크) + BaseEntity 컬럼 | 승인·구현 완료(`V3__init_share_link.sql`). 링크 경로 형식(`https://meotto.io.kr/s/{token}`). 회원당 토큰 하나, TTL 없음, 재발급 없음 — 회원 탈퇴 시에만 자연히 무효 |
 
 ## API 계약
 | ID | Method | Path | 인증 | Request | Response | 에러(name) | F-ID | 상태 |

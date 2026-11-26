@@ -47,7 +47,7 @@ if [[ "$LINE_COUNT" -gt 1 ]]; then
     fail "제목과 body 사이에는 빈 줄이 있어야 합니다"
   fi
 
-  BODY="$(tail -n +3 "$MSG_FILE" | grep -v '^#' | sed '/^$/d')"
+  BODY="$(tail -n +3 "$MSG_FILE" | grep -v '^#' | sed '/^$/d' || true)"
   if [[ -n "$BODY" ]]; then
     while IFS= read -r line; do
       if [[ "$line" != -* ]]; then
