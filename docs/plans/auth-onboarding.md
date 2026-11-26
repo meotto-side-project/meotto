@@ -27,8 +27,8 @@
 - 아이디(`@아이디`) 랜덤 제안은 가입 전에 호출되는 `C-2`가 담당한다. 아이디 유일성은 `C-3`에서 DB 유니크 제약과 서비스 검증으로 보장한다.
 - 가입 프로필 입력 화면의 사진 선택은 `mypage-settings` `POST /api/members/me/profile-image`를 그대로 재사용한다. FE가 사진을 먼저 그 API로 업로드해 `imageUrl`을 받고, 그 값을 `C-3`의 `profileImageUrl`에 담아 보낸다. 이 엔드포인트는 로그인(인증)이 필요한데, 소셜 로그인(`C-1`) 시점에 신규 회원도 이미 토큰이 발급되므로(아래 "토큰 전달 방식 확정") 프로필 입력 화면에서도 인증된 상태로 호출할 수 있다.
 - **토큰 전달 방식 확정**: `access_token`/`refresh_token` 둘 다 HttpOnly·Secure·SameSite=None 쿠키로 전달한다. 응답 본문에는 토큰 값이 들어가지 않는다 (`global/security/jwt`, `cookie` 기존 구현 그대로). `httpOnly` 쿠키는 클라이언트 JS/네이티브가 값을 직접 읽을 수 없으므로, 네이티브 보안 저장소로 토큰 "값"을 옮기는 방식은 애초에 불가능하다 — 네이티브 쪽은 웹뷰의 쿠키 저장소가 요청마다 자동으로 쿠키를 붙이는 것에 의존하게 된다. 로그인 상태를 어디에 "보관"할지(웹뷰 쿠키 vs 네이티브 보안 저장소)는 이 제약을 반영해 FE가 다시 검토해야 하는 Spec의 미해결 질문으로 남긴다.
-- **가입 완료 판단(제안, BE 확인 필요)**: `C-1`의 `isNewMember`는 회원이 처음 만들어진 호출에서만 `true`이고, 회원은 소셜 로그인 직후 `handle` 없이 생성된다. 그래서 프로필 입력 중 이탈 후 재로그인하면 `false`가 와 가입 미완료 회원이 홈으로 들어갈 수 있다. FE는 `isNewMember`가 아니라 `mypage-settings` C-1(`GET /api/members/me`)의 `handle`이 비었는지로 가입 완료 여부를 판단한다. `handle`이 비어 있으면 프로필 설정 화면으로, 있으면 홈으로 보낸다. 같은 조회로 프로필 설정 화면의 이름(카카오 닉네임 또는 애플 기본값)과 사진 초기값도 채운다.
-- **프로필 설정 화면 접근 가드**: 라우트 진입 시 위 조회로 가입 완료 회원이면 홈으로 이동한다.
+- **가입 완료 판단(FE 사용 규칙)**: 로그인 직후에는 `C-1`의 `needsProfileSetup`, 앱이 로그인 API를 거치지 않고 쿠키로만 켜질 때는 `GET /api/members/me`(`mypage-settings` C-1)의 `profileCompleted`로 프로필 설정 화면과 홈을 가른다(`needsProfileSetup=true` 또는 `profileCompleted=false`이면 프로필 설정 화면). 프로필 설정 화면의 이름(카카오 닉네임 또는 애플 기본값)과 사진 초기값은 `/me`로 채운다. BE 구현은 완료(#103)했고 Swagger 반영 시점에 `isNewMember`를 쓰던 FE(MEO-54)를 `needsProfileSetup`으로 바꾼다.
+- **프로필 설정 화면 접근 가드**: 라우트 진입 시 `GET /api/members/me`의 `profileCompleted`가 `true`이면 홈으로 이동한다.
 - **오류 처리(FE)**: `INVALID_NICKNAME`(400)은 이름 입력창, `HANDLE_DUPLICATED`(409)·`INVALID_HANDLE`(400)은 아이디 입력창 아래에 문구와 빨간 테두리로 보여준다. 5xx와 네트워크 실패는 토스트로 안내하고 입력값은 유지한다. `ALREADY_SIGNED_UP`(409)은 동시 가입이나 연타로만 생기므로 가입이 이미 끝난 것으로 보고 홈으로 이동한다.
 - 스플래시는 웹뷰가 뜨기 전에 보여야 하므로 네이티브(`FE-mobile`)다. 온보딩·로그인 화면은 웹(`FE-web`)이다. 공유 링크 진입(F-04)은 일반 브라우저에서도 열려야 하므로 웹이다.
 - 앱 설치 여부 분기, 딥링크 처리는 네이티브 몫이다(`T-F04-03`).
