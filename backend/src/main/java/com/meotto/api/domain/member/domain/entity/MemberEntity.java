@@ -80,6 +80,10 @@ public class MemberEntity extends BaseEntity {
 		this.nickname = nickname;
 	}
 
+	public void updateHandle(String handle) {
+		this.handle = handle;
+	}
+
 	public void updateProfileImageUrl(String profileImageUrl) {
 		this.profileImageUrl = profileImageUrl;
 	}

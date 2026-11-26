@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.meotto.api.domain.member.application.service.MemberService;
+import com.meotto.api.domain.member.presentation.request.SignupProfileRequest;
 import com.meotto.api.domain.member.presentation.request.UpdateProfileRequest;
 import com.meotto.api.domain.member.presentation.request.UpdateSentPraiseVisibilityRequest;
 import com.meotto.api.domain.member.presentation.request.UpdateSettingsRequest;
@@ -50,6 +51,15 @@ public class MemberController {
 		@RequestParam("file")
 		MultipartFile file) {
 		return ProfileImageUploadResponse.from(memberService.uploadProfileImage(file));
+	}
+
+	@Operation(summary = "가입 프로필 완료")
+	@PostMapping("/me/signup-profile")
+	@ResponseStatus(HttpStatus.CREATED)
+	public void completeSignupProfile(
+		@RequestBody
+		SignupProfileRequest request) {
+		memberService.completeSignupProfile(request);
 	}
 
 	@Operation(summary = "프로필 변경")

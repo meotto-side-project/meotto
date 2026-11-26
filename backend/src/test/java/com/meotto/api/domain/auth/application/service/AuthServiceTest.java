@@ -66,7 +66,7 @@ class AuthServiceTest {
 	private HttpServletResponse response;
 
 	@Test
-	void loginWithKakao_신규유저면_유저를_생성하고_토큰을_발급한다() {
+	void loginWithKakao_신규유저면_유저를_생성하고_프로필설정이_필요하다() {
 		KakaoUserInfo kakaoUserInfo = KakaoUserInfo.builder()
 			.providerId("123")
 			.nickname("멋토유저")
@@ -91,12 +91,12 @@ class AuthServiceTest {
 		verify(refreshTokenRepository).save(1L, "refresh-token");
 		verify(cookieUtil).addAccessTokenCookie(response, "access-token");
 		verify(cookieUtil).addRefreshTokenCookie(response, "refresh-token");
-		assertThat(loginResponse.isNewMember()).isTrue();
+		assertThat(loginResponse.needsProfileSetup()).isTrue();
 		assertThat(loginResponse.memberId()).isEqualTo(1L);
 	}
 
 	@Test
-	void loginWithKakao_기존유저면_유저를_재사용하고_토큰만_발급한다() {
+	void loginWithKakao_기존유저지만_프로필설정을_안했으면_필요하다() {
 		KakaoUserInfo kakaoUserInfo = KakaoUserInfo.builder()
 			.providerId("123")
 			.nickname("멋토유저")
@@ -116,12 +116,37 @@ class AuthServiceTest {
 
 		verify(memberRepository, never()).save(any());
 		verify(refreshTokenRepository).save(1L, "refresh-token");
-		assertThat(loginResponse.isNewMember()).isFalse();
+		assertThat(loginResponse.needsProfileSetup()).isTrue();
 		assertThat(loginResponse.memberId()).isEqualTo(1L);
 	}
 
 	@Test
-	void loginWithApple_신규유저면_유저를_생성하고_토큰을_발급한다() {
+	void loginWithKakao_프로필설정을_마친유저면_필요없다() {
+		KakaoUserInfo kakaoUserInfo = KakaoUserInfo.builder()
+			.providerId("123")
+			.nickname("멋토유저")
+			.build();
+		when(kakaoApiClient.getUserInfo("kakao-access-token")).thenReturn(kakaoUserInfo);
+
+		MemberEntity existingEntity = MemberEntity.from(
+			Member.create("멋토유저", null, OAuthProvider.KAKAO, "123"));
+		ReflectionTestUtils.setField(existingEntity, "id", 1L);
+		existingEntity.updateHandle("meotto_user");
+		when(memberRepository.findByProviderAndProviderId(OAuthProvider.KAKAO, "123"))
+			.thenReturn(Optional.of(existingEntity));
+
+		when(jwtTokenProvider.createAccessToken(1L, "USER")).thenReturn("access-token");
+		when(jwtTokenProvider.createRefreshToken(1L)).thenReturn("refresh-token");
+
+		LoginResponse loginResponse = authService.loginWithKakao("kakao-access-token", response);
+
+		verify(memberRepository, never()).save(any());
+		assertThat(loginResponse.needsProfileSetup()).isFalse();
+		assertThat(loginResponse.memberId()).isEqualTo(1L);
+	}
+
+	@Test
+	void loginWithApple_신규유저면_유저를_생성하고_프로필설정이_필요하다() {
 		AppleUserInfo appleUserInfo = new AppleUserInfo("apple-sub-123");
 		when(appleApiClient.verifyIdentityToken("identity-token")).thenReturn(appleUserInfo);
 		when(memberRepository.findByProviderAndProviderId(OAuthProvider.APPLE, "apple-sub-123"))
@@ -142,18 +167,19 @@ class AuthServiceTest {
 		assertThat(savedCaptor.getValue().getNickname()).isEqualTo("Apple 사용자");
 		assertThat(savedCaptor.getValue().getProvider()).isEqualTo(OAuthProvider.APPLE);
 		verify(refreshTokenRepository).save(2L, "refresh-token");
-		assertThat(loginResponse.isNewMember()).isTrue();
+		assertThat(loginResponse.needsProfileSetup()).isTrue();
 		assertThat(loginResponse.memberId()).isEqualTo(2L);
 	}
 
 	@Test
-	void loginWithApple_기존유저면_유저를_재사용하고_토큰만_발급한다() {
+	void loginWithApple_프로필설정을_마친유저면_필요없다() {
 		AppleUserInfo appleUserInfo = new AppleUserInfo("apple-sub-123");
 		when(appleApiClient.verifyIdentityToken("identity-token")).thenReturn(appleUserInfo);
 
 		MemberEntity existingEntity = MemberEntity.from(
 			Member.create("Apple 사용자", null, OAuthProvider.APPLE, "apple-sub-123"));
 		ReflectionTestUtils.setField(existingEntity, "id", 2L);
+		existingEntity.updateHandle("apple_user");
 		when(memberRepository.findByProviderAndProviderId(OAuthProvider.APPLE, "apple-sub-123"))
 			.thenReturn(Optional.of(existingEntity));
 
@@ -164,7 +190,7 @@ class AuthServiceTest {
 
 		verify(memberRepository, never()).save(any());
 		verify(refreshTokenRepository).save(2L, "refresh-token");
-		assertThat(loginResponse.isNewMember()).isFalse();
+		assertThat(loginResponse.needsProfileSetup()).isFalse();
 		assertThat(loginResponse.memberId()).isEqualTo(2L);
 	}
 

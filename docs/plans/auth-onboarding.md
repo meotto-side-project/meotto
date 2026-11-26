@@ -19,7 +19,9 @@
 - 공유 링크 토큰의 무효·만료 처리를 확정한다: **만료 없음**(TTL 없이 영구 유효), **재발급 기능 없음**(MVP 범위에 토큰 재설정 액션을 두지 않음). 회원이 탈퇴(소프트 삭제)하면 그 토큰만 자연히 무효가 된다. 토큰은 회원당 하나(get-or-create 방식으로 발급, `mypage-settings` C-6이 재사용)이며, 생성·보관 비용은 기존 MySQL 컨테이너에 문자열 한 줄을 더하는 수준이라 추가 금전적 비용이 들지 않는다.
 
 ## 기술 설계
-- 인증의 중심은 `Member`다. 소셜 로그인(카카오·Apple, 네이버는 검수 대기로 보류)으로 가입과 로그인을 처리하고, 응답의 `isNewMember`로 프로필 입력 화면 진입 여부를 가른다. 신규 회원은 `C-3`으로 프로필을 완료해야 가입이 끝난다.
+- 인증의 중심은 `Member`다. 소셜 로그인(카카오·Apple, 네이버는 검수 대기로 보류)으로 가입과 로그인을 처리하고, 응답의 `needsProfileSetup`으로 프로필 입력 화면 진입 여부를 가른다. 신규 회원은 `C-3`으로 프로필을 완료해야 가입이 끝난다.
+- **가입 이탈·재로그인 처리 확정**: `needsProfileSetup`은 "이번에 회원이 새로 생성됐는지"가 아니라 "`handle`이 아직 없는지"로 계산한다. `handle`은 가입 완료 API(`C-3`)를 통과해야만 채워지므로, 프로필 입력 중 이탈했다가 나중에 다시 로그인해도 `handle`이 null이면 그대로 `needsProfileSetup: true`가 와서 다시 프로필 화면으로 보낼 수 있다. 프로필 설정 화면의 뒤로가기는 별도 "가입 취소" API 없이 로그인 화면으로만 이동하면 된다(서버의 부분 가입 상태는 그대로 두고, 다음 로그인 때 이 필드가 다시 안내한다).
+- 같은 이유로 `mypage-settings` `GET /api/members/me`(C-1) 응답에도 `profileCompleted`(`handle != null`) 필드를 추가해, 로그인 API를 다시 타지 않고 쿠키로만 앱이 재시작되는 경우에도 프로필 완료 여부를 판단할 수 있게 한다.
 - 아이디(`@아이디`) 랜덤 제안은 가입 전에 호출되는 `C-2`가 담당한다. 아이디 유일성은 `C-3`에서 DB 유니크 제약과 서비스 검증으로 보장한다.
 - 가입 프로필 입력 화면의 사진 선택은 `mypage-settings` `POST /api/members/me/profile-image`를 그대로 재사용한다. FE가 사진을 먼저 그 API로 업로드해 `imageUrl`을 받고, 그 값을 `C-3`의 `profileImageUrl`에 담아 보낸다. 이 엔드포인트는 로그인(인증)이 필요한데, 소셜 로그인(`C-1`) 시점에 신규 회원도 이미 토큰이 발급되므로(아래 "토큰 전달 방식 확정") 프로필 입력 화면에서도 인증된 상태로 호출할 수 있다.
 - **토큰 전달 방식 확정**: `access_token`/`refresh_token` 둘 다 HttpOnly·Secure·SameSite=None 쿠키로 전달한다. 응답 본문에는 토큰 값이 들어가지 않는다 (`global/security/jwt`, `cookie` 기존 구현 그대로). `httpOnly` 쿠키는 클라이언트 JS/네이티브가 값을 직접 읽을 수 없으므로, 네이티브 보안 저장소로 토큰 "값"을 옮기는 방식은 애초에 불가능하다 — 네이티브 쪽은 웹뷰의 쿠키 저장소가 요청마다 자동으로 쿠키를 붙이는 것에 의존하게 된다. 로그인 상태를 어디에 "보관"할지(웹뷰 쿠키 vs 네이티브 보안 저장소)는 이 제약을 반영해 FE가 다시 검토해야 하는 Spec의 미해결 질문으로 남긴다.
@@ -42,9 +44,9 @@
 ## API 계약
 | ID | Method | Path | 인증 | Request | Response | 에러(name) | F-ID | 상태 |
 |---|---|---|---|---|---|---|---|---|
-| C-1 | POST | `/api/auth/kakao` body `{ accessToken }` (카카오) / `/api/auth/apple` body `{ identityToken }` (애플) | 없음 | provider별 엔드포인트로 분리 구현 (범용 `/api/auth/login/{provider}` 안은 폐기). 네이버는 검수 대기라 보류 | 200 `{ isNewMember, memberId }`. 토큰은 응답 본문에 없고 `access_token`/`refresh_token` HttpOnly 쿠키로 전달 | `INVALID_KAKAO_TOKEN`(401) / `INVALID_APPLE_TOKEN`(401) | F-03 | 확정 (구현 기준으로 Plan 반영, FE 확인 완료) |
+| C-1 | POST | `/api/auth/kakao` body `{ accessToken }` (카카오) / `/api/auth/apple` body `{ identityToken }` (애플) / `/api/auth/naver`(미구현, 검수 대기) | 없음 | provider별 엔드포인트로 분리 구현 (범용 `/api/auth/login/{provider}` 안은 폐기) | 200 `{ needsProfileSetup, memberId }`(`isNewMember`에서 이름·의미 변경: "`handle`이 아직 없는지" 기준). 토큰은 응답 본문에 없고 `access_token`/`refresh_token` HttpOnly 쿠키로 전달 | `INVALID_KAKAO_TOKEN`(401) / `INVALID_APPLE_TOKEN`(401) | F-03 | 확정 (구현 기준으로 Plan 반영, FE 확인 완료) |
 | C-2 | GET | /api/members/handle-suggestion | 없음 | - | 200 `{ handle }` | - | F-03 | 확정 |
-| C-3 | POST | /api/members/me/signup-profile | 필요 | `{ nickname, handle, profileImageUrl? }`. 닉네임은 2~10자 한글/영문/숫자/공백만 허용 | 201 없음 | `HANDLE_DUPLICATED`(409), `INVALID_NICKNAME`(400), `INVALID_HANDLE`(400), `ALREADY_SIGNED_UP`(409) | F-03 | 보류: 가입 실패·취소 흐름. 닉네임 규칙과 아이디(handle) 규칙(3~30자, 영문/숫자/./_, 마침표 연속·시작·끝 금지)은 확정 |
+| C-3 | POST | /api/members/me/signup-profile | 필요 | `{ nickname, handle, profileImageUrl? }`. 닉네임은 2~10자 한글/영문/숫자/공백만 허용, 아이디는 3~30자 영문/숫자/./_(마침표 연속·시작·끝 금지) | 201 없음 | `HANDLE_DUPLICATED`(409): 아이디 중복 / `INVALID_NICKNAME`(400) / `INVALID_HANDLE`(400) / `ALREADY_SIGNED_UP`(409): 이미 `handle`이 있는 회원이 다시 호출 | F-03 | 확정 |
 | C-4 | GET | /api/share-links/{token} | 없음 | - (경로의 `{token}`은 `https://meotto.io.kr/s/{token}` 링크에서 추출) | 200 `{ receiverId, receiverNickname }` | `SHARE_LINK_NOT_FOUND`(404): 토큰이 DB에 없음(존재 자체 안 함). `SHARE_LINK_INVALID`(410): 토큰은 있으나 소유 회원이 탈퇴(소프트 삭제)됨 | F-04 | 확정 |
 
 - 공통: 응답 상태코드와 오류 형식은 backend/CLAUDE.md의 "API 응답 표준"을 따른다 (`{ name, message }`).
@@ -58,11 +60,11 @@
 | 네이티브 → 웹 | `AUTH_STATE` | `{ loggedIn }` | 시작 시 로그인 상태 전달 | 보류: 로그인 상태 유지 방식 |
 
 ## 구현 순서와 의존성
-1. API 계약 표 승인 (`확정` 행: C-1, C-2, C-4)
+1. API 계약 표 승인 (`확정` 행: C-1, C-2, C-3, C-4)
 2. 공통 준비 `T-F01-00`, MSW 구성 `T-F01-98`(MEO-38/PR #25로 대체)
 3. BE Task들 ∥ FE Task들(MSW 목)
 4. 실서버 연동 확인 `T-F01-99` (BE 완료 후)
-5. 보류 Task(`T-F01-01`, `T-F03-02`, `T-F03-04`~`T-F03-07`, `T-F04-01`~`T-F04-03`)는 질문 해소 후 `/plan-feature auth-onboarding`(갱신)으로 계약을 확정한 뒤 시작
+5. 보류 Task(`T-F01-01`, `T-F03-05`, `T-F03-07`, `T-F04-03`)는 질문 해소 후 `/plan-feature auth-onboarding`(갱신)으로 계약을 확정한 뒤 시작
 
 ## 테스트 전략
 - BE: `MemberService`(아이디 제안·중복), `AuthService`(소셜 토큰 검증은 외부 호출을 목킹) 서비스 단위 테스트
@@ -79,9 +81,9 @@
 | T-F03-01 | `Member` Entity·Repository·마이그레이션 (스키마 승인 필요) | BE | F-03 | backend/src/main/java/com/meotto/api/domain/member/** | 데이터 모델 승인 | cd backend && ./gradlew spotlessCheck checkstyleMain test | MEO-46 |
 | T-F03-02 | 소셜 로그인 API(카카오·Apple)와 토큰 발급 | BE | F-03 AC2 | backend/src/main/java/com/meotto/api/domain/auth/**, backend/src/main/java/com/meotto/api/global/security/** | T-F03-01 | cd backend && ./gradlew spotlessCheck checkstyleMain test | MEO-26 (연결, 완료) |
 | T-F03-03 | 아이디 랜덤 제안 API(C-2) | BE | F-03 | backend/src/main/java/com/meotto/api/domain/member/** | T-F03-01, 계약 C-2 확정 | cd backend && ./gradlew spotlessCheck checkstyleMain test | MEO-51 |
-| T-F03-04 | 가입 프로필 완료 API(C-3) 아이디 유일성 검증 | BE | F-03 | backend/src/main/java/com/meotto/api/domain/member/** | T-F03-01, 닉네임 규칙 확정 | cd backend && ./gradlew spotlessCheck checkstyleMain test | MEO-52 |
+| T-F03-04 | 가입 프로필 완료 API(C-3) 아이디 유일성 검증 | BE | F-03 | backend/src/main/java/com/meotto/api/domain/member/** | T-F03-01, 계약 C-3 확정 — 구현 완료 | cd backend && ./gradlew spotlessCheck checkstyleMain test | MEO-52 |
 | T-F03-05 | 로그인 화면(3개 소셜 버튼)과 로그인 성공 후 홈 이동 | FE-web | F-03 AC2 | frontend/apps/web/src/app/login/**, frontend/apps/web/src/components/features/auth/** | T-F01-98, 보류: 로그인 상태 유지 방식 | cd frontend && pnpm lint && pnpm check-types. 수동 확인: MSW 목 | MEO-54 |
-| T-F03-06 | 신규 가입 프로필 입력 화면(닉네임, 아이디 placeholder, 사진 선택) | FE-web | F-03 | frontend/apps/web/src/app/signup/**, frontend/apps/web/src/components/features/auth/** | T-F01-98, T-F03-05, 닉네임 제한 확정 / 보류: 가입 실패 흐름 | cd frontend && pnpm lint && pnpm check-types. 수동 확인: MSW 목 | MEO-57 |
+| T-F03-06 | 신규 가입 프로필 입력 화면(닉네임, 아이디 placeholder, 사진 선택). 뒤로가기는 로그인 화면으로만 이동(별도 취소 API 없음) | FE-web | F-03 | frontend/apps/web/src/app/signup/**, frontend/apps/web/src/components/features/auth/** | T-F01-98, T-F03-05, 계약 C-3 확정 | cd frontend && pnpm lint && pnpm check-types. 수동 확인: MSW 목 | MEO-57 |
 | T-F03-07 | 소셜 SDK 연동과 토큰 보관 브리지 | FE-mobile | F-03 | frontend/apps/mobile/src/** | 보류: 로그인 상태 유지 방식 | 수동 확인: 실기기. cd frontend && pnpm lint && pnpm check-types | MEO-47 |
 | T-F04-01 | 공유 링크 해석 API(C-4)와 `ShareLink` Entity | BE | F-04 AC3 | backend/src/main/java/com/meotto/api/domain/sharelink/** | T-F03-01, 계약 C-4 확정 | cd backend && ./gradlew spotlessCheck checkstyleMain test | MEO-53 |
 | T-F04-02 | 공유 링크 진입 라우트에서 토마토 보내기(F-24)로 이동 | FE-web | F-04 AC3 | frontend/apps/web/src/app/(public)/** | T-F01-98, 링크 경로 형식 확정 | cd frontend && pnpm lint && pnpm check-types. 수동 확인: MSW 목 | MEO-55 |
@@ -94,6 +96,6 @@ AC 연결: F-02 AC1 → T-F02-01. F-03 AC2 → T-F03-02, T-F03-05. F-04 AC3 → 
 - 로그인 상태 유지 방식과 토큰 보관 위치 (Spec Open Questions 1)
 - 스플래시 이후 분기 조건(로그인·온보딩 본 여부)
 - 프로필 사진 업로드 UI 방식(앨범 선택, 카메라) (`mypage-settings`와 공유). 닉네임 길이/허용 문자, 아이디(handle) 규칙(3~30자, 영문(대소문자)/숫자/마침표(`.`)/언더스코어(`_`), 마침표 연속·시작·끝 금지, DB는 `utf8mb4_unicode_ci`로 대소문자 구분 없이 유일성 검사)은 모두 확정됨
-- 로그인 취소·실패·소셜 계정 통합 여부
+- 소셜 로그인 팝업 자체의 취소 처리, 소셜 계정 통합(카카오·Apple 등으로 가입한 계정을 하나로 합칠지) 여부. 가입 프로필 입력 중 이탈 후 재로그인했을 때의 처리와 뒤로가기 정책은 확정됨 — "결정 사항" 참고
 - 앱 설치 감지 방식. 공유 링크 경로 형식과 토큰 무효·만료 처리(만료 없음, 재발급 없음, 탈퇴 시에만 무효)는 확정됨 — "결정 사항" 참고
 - 비회원 보내는 사람 이름 설정 여부 (Spec Open Questions 2)

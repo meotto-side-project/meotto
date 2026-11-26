@@ -13,6 +13,7 @@ import com.meotto.api.domain.member.domain.model.Member;
 import com.meotto.api.domain.member.domain.model.enums.SentPraiseVisibility;
 import com.meotto.api.domain.member.domain.repository.MemberRepository;
 import com.meotto.api.domain.member.exception.MemberErrorCode;
+import com.meotto.api.domain.member.presentation.request.SignupProfileRequest;
 import com.meotto.api.domain.member.presentation.request.UpdateProfileRequest;
 import com.meotto.api.domain.member.presentation.request.UpdateSentPraiseVisibilityRequest;
 import com.meotto.api.domain.member.presentation.request.UpdateSettingsRequest;
@@ -32,6 +33,7 @@ public class MemberService {
 	private static final int HANDLE_LENGTH = 8;
 	private static final int MAX_SUGGESTION_ATTEMPTS = 10;
 	private static final Pattern NICKNAME_PATTERN = Pattern.compile("^[가-힣a-zA-Z0-9 ]{2,10}$");
+	private static final Pattern HANDLE_PATTERN = Pattern.compile("^(?!\\.)(?!.*\\.\\.)[A-Za-z0-9._]{3,30}(?<!\\.)$");
 
 	private final MemberRepository memberRepository;
 	private final FileStorageService fileStorageService;
@@ -56,6 +58,32 @@ public class MemberService {
 		}
 		if (request.profileImageUrl() != null) {
 			member.updateProfileImageUrl(request.profileImageUrl());
+		}
+	}
+
+	@Transactional
+	public void completeSignupProfile(SignupProfileRequest request) {
+		MemberEntity member = getCurrentMemberEntity();
+		if (member.getHandle() != null) {
+			throw new BusinessException(MemberErrorCode.ALREADY_SIGNED_UP);
+		}
+
+		validateNickname(request.nickname());
+		validateHandle(request.handle());
+		if (memberRepository.existsByHandle(request.handle())) {
+			throw new BusinessException(MemberErrorCode.HANDLE_DUPLICATED);
+		}
+
+		member.updateNickname(request.nickname());
+		member.updateHandle(request.handle());
+		if (request.profileImageUrl() != null) {
+			member.updateProfileImageUrl(request.profileImageUrl());
+		}
+	}
+
+	private void validateHandle(String handle) {
+		if (handle == null || !HANDLE_PATTERN.matcher(handle).matches()) {
+			throw new BusinessException(MemberErrorCode.INVALID_HANDLE);
 		}
 	}
 
@@ -99,7 +127,7 @@ public class MemberService {
 	}
 
 	private void validateNickname(String nickname) {
-		if (!NICKNAME_PATTERN.matcher(nickname).matches()) {
+		if (nickname == null || !NICKNAME_PATTERN.matcher(nickname).matches()) {
 			throw new BusinessException(MemberErrorCode.INVALID_NICKNAME);
 		}
 	}
