@@ -1,5 +1,5 @@
-import { View } from "react-native";
+import StartWebView from "@/components/features/webview/StartWebView/StartWebView";
 
-export default function HomeScreen() {
-  return <View style={{ flex: 1 }} />;
+export default function IndexScreen() {
+  return <StartWebView />;
 }
