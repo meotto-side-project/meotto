@@ -49,7 +49,7 @@ push할 브랜치와 커밋 목록을 보여 주고 승인을 받는다.
 - **Related Issues**:
   - Spec: `docs/specs/<file>.md` F-xx~yy
   - Plan: `docs/plans/<feature>.md`
-  - Linear: `Part of MEO-xx` (이슈 링크만 걸고 상태는 바꾸지 않는 표현). 머지 시 이슈를 닫으려면 사용자가 `Closes MEO-xx`로 바꾸도록 안내한다.
+  - Linear: `Closes MEO-xx` (머지 시 이슈를 닫는다). 연결된 GitHub 이슈가 있으면 `Closes #nn`도 쓴다. 이슈의 일부만 처리하는 PR일 때만 `Part of`를 쓰고 그 이유를 적는다.
 - **Screenshot**: UI 변경이면 스크린샷, 아니면 `해당 없음`
 - **Check List**: 템플릿의 6개 항목을 모두 표시하고 충족된 것만 `[x]`로 체크한다. "테스트가 전부 통과되었나요?"는 실제 실행으로 확인된 경우에만 체크한다.
 
