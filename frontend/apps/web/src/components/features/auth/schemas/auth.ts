@@ -1,8 +1,11 @@
 import { z } from "zod";
 
-const HANDLE_PATTERN = /^[A-Za-z0-9_]+(\.[A-Za-z0-9_]+)*$/;
+export const NICKNAME_PATTERN = /^[가-힣a-zA-Z0-9 ]{2,10}$/;
+export const HANDLE_PATTERN = /^(?!\.)(?!.*\.\.)[A-Za-z0-9._]{3,30}(?<!\.)$/;
 
-export const handleSchema = z.string().min(3).max(30).regex(HANDLE_PATTERN);
+export const nicknameSchema = z.string().regex(NICKNAME_PATTERN);
+
+export const handleSchema = z.string().regex(HANDLE_PATTERN);
 
 export const socialLoginResponseSchema = z.object({
   needsProfileSetup: z.boolean(),
@@ -14,9 +17,24 @@ export const handleSuggestionResponseSchema = z.object({
 });
 
 export const signupProfileRequestSchema = z.object({
-  nickname: z.string().min(1),
+  nickname: nicknameSchema,
   handle: handleSchema,
   profileImageUrl: z.string().optional(),
+});
+
+export const memberMeResponseSchema = z.object({
+  id: z.number(),
+  nickname: z.string(),
+  handle: z.string().nullable(),
+  profileImageUrl: z.string().nullable(),
+  notificationEnabled: z.boolean(),
+  boardPublic: z.boolean(),
+  sentPraiseVisibility: z.enum(["ALL", "NAME_ONLY", "PRIVATE"]),
+  profileCompleted: z.boolean(),
+});
+
+export const profileImageResponseSchema = z.object({
+  imageUrl: z.string(),
 });
 
 export type SocialLoginResponse = z.infer<typeof socialLoginResponseSchema>;
@@ -24,3 +42,5 @@ export type HandleSuggestionResponse = z.infer<
   typeof handleSuggestionResponseSchema
 >;
 export type SignupProfileRequest = z.infer<typeof signupProfileRequestSchema>;
+export type MemberMeResponse = z.infer<typeof memberMeResponseSchema>;
+export type ProfileImageResponse = z.infer<typeof profileImageResponseSchema>;

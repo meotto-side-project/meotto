@@ -4,5 +4,6 @@ export const AUTH_ERROR_NAMES = {
   handleDuplicated: "HANDLE_DUPLICATED",
   invalidNickname: "INVALID_NICKNAME",
   invalidHandle: "INVALID_HANDLE",
+  invalidImage: "INVALID_IMAGE",
   alreadySignedUp: "ALREADY_SIGNED_UP",
 } as const;
