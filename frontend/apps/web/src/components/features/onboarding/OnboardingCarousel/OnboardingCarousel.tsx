@@ -21,6 +21,7 @@ const OnboardingCarousel = ({
   const slide = ONBOARDING_SLIDES[index];
   const total = ONBOARDING_SLIDES.length;
   const isLast = index === total - 1;
+  const position = `${total}장 중 ${index + 1}번째`;
 
   const handleNext = () => {
     if (isLast) {
@@ -40,7 +41,7 @@ const OnboardingCarousel = ({
     >
       <section
         aria-roledescription="slide"
-        aria-label={`${total}장 중 ${index + 1}번째`}
+        aria-label={position}
         className="flex flex-1 flex-col"
       >
         <div
@@ -48,6 +49,7 @@ const OnboardingCarousel = ({
           aria-atomic="true"
           className="flex flex-col gap-3.75 pl-6 break-keep"
         >
+          <span className="sr-only">{position}</span>
           <h1 className="text-h2 leading-8.75 font-medium whitespace-pre-line text-black">
             {slide.titleBefore}
             <span className="text-tomato">{slide.titleHighlight}</span>

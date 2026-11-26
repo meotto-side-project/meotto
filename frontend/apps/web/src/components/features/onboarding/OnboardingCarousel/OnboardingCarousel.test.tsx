@@ -47,12 +47,13 @@ it("다음을 누르면 두 번째 장으로 넘어가고 아직 이동하지 �
   expect(push).not.toHaveBeenCalled();
 });
 
-it("장이 바뀌면 새 카피가 보조기기에 알림 영역으로 전달된다", async () => {
+it("장이 바뀌면 장 번호와 새 카피가 보조기기에 알림 영역으로 전달된다", async () => {
   const user = userEvent.setup();
   render(<OnboardingCarousel />);
 
   await user.click(screen.getByRole("button", { name: "다음" }));
 
+  expect(screen.getByRole("status")).toHaveTextContent("3장 중 2번째");
   expect(screen.getByRole("status")).toHaveTextContent(
     "토마토 도장에 마음을 담아",
   );
