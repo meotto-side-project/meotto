@@ -12,7 +12,12 @@ import lombok.RequiredArgsConstructor;
 public enum MemberErrorCode implements ErrorCode {
 
 	MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 회원을 찾을 수 없습니다."),
-	HANDLE_SUGGESTION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "아이디 제안을 생성하지 못했습니다. 다시 시도해주세요.");
+	HANDLE_SUGGESTION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "아이디 제안을 생성하지 못했습니다. 다시 시도해주세요."),
+	INVALID_NICKNAME(HttpStatus.BAD_REQUEST, "닉네임은 2~10자의 한글/영문/숫자/공백만 허용합니다."),
+	INVALID_VISIBILITY(HttpStatus.BAD_REQUEST, "visibility는 ALL, NAME_ONLY, PRIVATE 중 하나여야 합니다."),
+	INVALID_HANDLE(HttpStatus.BAD_REQUEST, "아이디는 3~30자의 영문/숫자/./_만 허용하며, 마침표로 시작·끝나거나 연속될 수 없습니다."),
+	HANDLE_DUPLICATED(HttpStatus.CONFLICT, "이미 사용 중인 아이디입니다."),
+	ALREADY_SIGNED_UP(HttpStatus.CONFLICT, "이미 가입을 완료한 회원입니다.");
 
 	private final HttpStatus status;
 	private final String message;

@@ -42,19 +42,19 @@ public class AuthService {
 
 	public LoginResponse loginWithKakao(String kakaoAccessToken, HttpServletResponse response) {
 		KakaoUserInfo kakaoUserInfo = kakaoApiClient.getUserInfo(kakaoAccessToken);
-		MemberResolution resolution = getOrCreateMember(
+		Member member = getOrCreateMember(
 			OAuthProvider.KAKAO, kakaoUserInfo.providerId(), kakaoUserInfo.nickname(),
 			kakaoUserInfo.profileImageUrl());
-		issueTokens(resolution.member().id(), resolution.member().role().name(), response);
-		return new LoginResponse(resolution.isNewMember(), resolution.member().id());
+		issueTokens(member.id(), member.role().name(), response);
+		return new LoginResponse(member.handle() == null, member.id());
 	}
 
 	public LoginResponse loginWithApple(String identityToken, HttpServletResponse response) {
 		AppleUserInfo appleUserInfo = appleApiClient.verifyIdentityToken(identityToken);
-		MemberResolution resolution = getOrCreateMember(
+		Member member = getOrCreateMember(
 			OAuthProvider.APPLE, appleUserInfo.providerId(), DEFAULT_APPLE_NICKNAME, null);
-		issueTokens(resolution.member().id(), resolution.member().role().name(), response);
-		return new LoginResponse(resolution.isNewMember(), resolution.member().id());
+		issueTokens(member.id(), member.role().name(), response);
+		return new LoginResponse(member.handle() == null, member.id());
 	}
 
 	public void reissue(String refreshToken, HttpServletResponse response) {
@@ -79,14 +79,13 @@ public class AuthService {
 		cookieUtil.deleteCookies(response);
 	}
 
-	private MemberResolution getOrCreateMember(
+	private Member getOrCreateMember(
 		OAuthProvider provider, String providerId, String nickname, String profileImageUrl) {
 		return memberRepository.findByProviderAndProviderId(provider, providerId)
-			.map(entity -> new MemberResolution(entity.toModel(), false))
+			.map(MemberEntity::toModel)
 			.orElseGet(() -> {
 				Member newMember = Member.create(nickname, profileImageUrl, provider, providerId);
-				Member saved = memberRepository.save(MemberEntity.from(newMember)).toModel();
-				return new MemberResolution(saved, true);
+				return memberRepository.save(MemberEntity.from(newMember)).toModel();
 			});
 	}
 
@@ -98,8 +97,5 @@ public class AuthService {
 
 		cookieUtil.addAccessTokenCookie(response, accessToken);
 		cookieUtil.addRefreshTokenCookie(response, refreshToken);
-	}
-
-	private record MemberResolution(Member member, boolean isNewMember) {
 	}
 }

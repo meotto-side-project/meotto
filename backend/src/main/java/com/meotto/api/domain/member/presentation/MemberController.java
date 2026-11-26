@@ -1,13 +1,28 @@
 package com.meotto.api.domain.member.presentation;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.meotto.api.domain.member.application.service.MemberService;
+import com.meotto.api.domain.member.presentation.request.SignupProfileRequest;
+import com.meotto.api.domain.member.presentation.request.UpdateProfileRequest;
+import com.meotto.api.domain.member.presentation.request.UpdateSentPraiseVisibilityRequest;
+import com.meotto.api.domain.member.presentation.request.UpdateSettingsRequest;
 import com.meotto.api.domain.member.presentation.response.HandleSuggestionResponse;
+import com.meotto.api.domain.member.presentation.response.MemberResponse;
+import com.meotto.api.domain.member.presentation.response.ProfileImageUploadResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -21,5 +36,63 @@ public class MemberController {
 	@GetMapping("/handle-suggestion")
 	public HandleSuggestionResponse getHandleSuggestion() {
 		return HandleSuggestionResponse.from(memberService.suggestHandle());
+	}
+
+	@Operation(summary = "내 정보 조회")
+	@GetMapping("/me")
+	public MemberResponse getMe() {
+		return MemberResponse.from(memberService.getMe());
+	}
+
+	@Operation(summary = "프로필 사진 업로드")
+	@PostMapping("/me/profile-image")
+	@ResponseStatus(HttpStatus.CREATED)
+	public ProfileImageUploadResponse uploadProfileImage(
+		@RequestParam("file")
+		MultipartFile file) {
+		return ProfileImageUploadResponse.from(memberService.uploadProfileImage(file));
+	}
+
+	@Operation(summary = "가입 프로필 완료")
+	@PostMapping("/me/signup-profile")
+	@ResponseStatus(HttpStatus.CREATED)
+	public void completeSignupProfile(
+		@RequestBody
+		SignupProfileRequest request) {
+		memberService.completeSignupProfile(request);
+	}
+
+	@Operation(summary = "프로필 변경")
+	@PatchMapping("/me/profile")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void updateProfile(
+		@RequestBody
+		UpdateProfileRequest request) {
+		memberService.updateProfile(request);
+	}
+
+	@Operation(summary = "설정 변경")
+	@PatchMapping("/me/settings")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void updateSettings(
+		@RequestBody
+		UpdateSettingsRequest request) {
+		memberService.updateSettings(request);
+	}
+
+	@Operation(summary = "보낸 칭찬 공개 설정 변경")
+	@PatchMapping("/me/settings/sent-praise-visibility")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void updateSentPraiseVisibility(
+		@RequestBody
+		UpdateSentPraiseVisibilityRequest request) {
+		memberService.updateSentPraiseVisibility(request);
+	}
+
+	@Operation(summary = "회원탈퇴")
+	@DeleteMapping("/me")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void withdraw(HttpServletResponse response) {
+		memberService.withdraw(response);
 	}
 }

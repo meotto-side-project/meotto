@@ -64,6 +64,13 @@ public class SecurityConfig {
 				.requestMatchers("/api/auth/logout").authenticated()
 				.requestMatchers("/api/auth/**").permitAll()
 				.requestMatchers("/api/members/handle-suggestion").permitAll()
+				.requestMatchers(HttpMethod.GET, "/api/members/me").authenticated()
+				.requestMatchers(HttpMethod.POST, "/api/members/me/signup-profile").authenticated()
+				.requestMatchers(HttpMethod.POST, "/api/members/me/profile-image").authenticated()
+				.requestMatchers(HttpMethod.PATCH, "/api/members/me/profile").authenticated()
+				.requestMatchers(HttpMethod.PATCH, "/api/members/me/settings").authenticated()
+				.requestMatchers(HttpMethod.PATCH, "/api/members/me/settings/sent-praise-visibility").authenticated()
+				.requestMatchers(HttpMethod.DELETE, "/api/members/me").authenticated()
 
 				// Admin
 				.requestMatchers("/admin/**").hasRole("ADMIN")

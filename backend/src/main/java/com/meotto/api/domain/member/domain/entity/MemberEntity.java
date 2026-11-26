@@ -76,6 +76,30 @@ public class MemberEntity extends BaseEntity {
 			model.role());
 	}
 
+	public void updateNickname(String nickname) {
+		this.nickname = nickname;
+	}
+
+	public void updateHandle(String handle) {
+		this.handle = handle;
+	}
+
+	public void updateProfileImageUrl(String profileImageUrl) {
+		this.profileImageUrl = profileImageUrl;
+	}
+
+	public void updateNotificationEnabled(Boolean notificationEnabled) {
+		this.notificationEnabled = notificationEnabled;
+	}
+
+	public void updateBoardPublic(Boolean boardPublic) {
+		this.boardPublic = boardPublic;
+	}
+
+	public void updateSentPraiseVisibility(SentPraiseVisibility sentPraiseVisibility) {
+		this.sentPraiseVisibility = sentPraiseVisibility;
+	}
+
 	public Member toModel() {
 		return new Member(
 			getId(),

@@ -1,14 +1,27 @@
 package com.meotto.api.domain.member.application.service;
 
 import java.security.SecureRandom;
+import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.meotto.api.domain.auth.application.service.AuthService;
+import com.meotto.api.domain.member.domain.entity.MemberEntity;
+import com.meotto.api.domain.member.domain.model.Member;
+import com.meotto.api.domain.member.domain.model.enums.SentPraiseVisibility;
 import com.meotto.api.domain.member.domain.repository.MemberRepository;
 import com.meotto.api.domain.member.exception.MemberErrorCode;
+import com.meotto.api.domain.member.presentation.request.SignupProfileRequest;
+import com.meotto.api.domain.member.presentation.request.UpdateProfileRequest;
+import com.meotto.api.domain.member.presentation.request.UpdateSentPraiseVisibilityRequest;
+import com.meotto.api.domain.member.presentation.request.UpdateSettingsRequest;
 import com.meotto.api.global.exception.BusinessException;
+import com.meotto.api.global.infrastructure.file.FileStorageService;
+import com.meotto.api.global.security.context.SecurityUtil;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -19,9 +32,105 @@ public class MemberService {
 	private static final String HANDLE_CHARACTERS = "abcdefghijklmnopqrstuvwxyz0123456789";
 	private static final int HANDLE_LENGTH = 8;
 	private static final int MAX_SUGGESTION_ATTEMPTS = 10;
+	private static final Pattern NICKNAME_PATTERN = Pattern.compile("^[가-힣a-zA-Z0-9 ]{2,10}$");
+	private static final Pattern HANDLE_PATTERN = Pattern.compile("^(?!\\.)(?!.*\\.\\.)[A-Za-z0-9._]{3,30}(?<!\\.)$");
 
 	private final MemberRepository memberRepository;
+	private final FileStorageService fileStorageService;
+	private final AuthService authService;
 	private final SecureRandom random = new SecureRandom();
+
+	public Member getMe() {
+		return getCurrentMemberEntity().toModel();
+	}
+
+	public String uploadProfileImage(MultipartFile file) {
+		return fileStorageService.storeImage(file);
+	}
+
+	@Transactional
+	public void updateProfile(UpdateProfileRequest request) {
+		MemberEntity member = getCurrentMemberEntity();
+
+		if (request.nickname() != null) {
+			validateNickname(request.nickname());
+			member.updateNickname(request.nickname());
+		}
+		if (request.profileImageUrl() != null) {
+			member.updateProfileImageUrl(request.profileImageUrl());
+		}
+	}
+
+	@Transactional
+	public void completeSignupProfile(SignupProfileRequest request) {
+		MemberEntity member = getCurrentMemberEntity();
+		if (member.getHandle() != null) {
+			throw new BusinessException(MemberErrorCode.ALREADY_SIGNED_UP);
+		}
+
+		validateNickname(request.nickname());
+		validateHandle(request.handle());
+		if (memberRepository.existsByHandle(request.handle())) {
+			throw new BusinessException(MemberErrorCode.HANDLE_DUPLICATED);
+		}
+
+		member.updateNickname(request.nickname());
+		member.updateHandle(request.handle());
+		if (request.profileImageUrl() != null) {
+			member.updateProfileImageUrl(request.profileImageUrl());
+		}
+	}
+
+	private void validateHandle(String handle) {
+		if (handle == null || !HANDLE_PATTERN.matcher(handle).matches()) {
+			throw new BusinessException(MemberErrorCode.INVALID_HANDLE);
+		}
+	}
+
+	@Transactional
+	public void updateSettings(UpdateSettingsRequest request) {
+		MemberEntity member = getCurrentMemberEntity();
+
+		if (request.notificationEnabled() != null) {
+			member.updateNotificationEnabled(request.notificationEnabled());
+		}
+		if (request.boardPublic() != null) {
+			member.updateBoardPublic(request.boardPublic());
+		}
+	}
+
+	@Transactional
+	public void updateSentPraiseVisibility(UpdateSentPraiseVisibilityRequest request) {
+		MemberEntity member = getCurrentMemberEntity();
+		member.updateSentPraiseVisibility(parseVisibility(request.visibility()));
+	}
+
+	private SentPraiseVisibility parseVisibility(String visibility) {
+		try {
+			return SentPraiseVisibility.valueOf(visibility);
+		} catch (IllegalArgumentException | NullPointerException e) {
+			throw new BusinessException(MemberErrorCode.INVALID_VISIBILITY);
+		}
+	}
+
+	@Transactional
+	public void withdraw(HttpServletResponse response) {
+		MemberEntity member = getCurrentMemberEntity();
+		member.softDelete();
+		authService.logout(response);
+	}
+
+	private MemberEntity getCurrentMemberEntity() {
+		Long userId = SecurityUtil.getCurrentUserId();
+		return memberRepository.findByIdAndDeletedAtIsNull(userId)
+			.orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
+	}
+
+	private void validateNickname(String nickname) {
+		if (nickname == null || !NICKNAME_PATTERN.matcher(nickname).matches()) {
+			throw new BusinessException(MemberErrorCode.INVALID_NICKNAME);
+		}
+	}
 
 	public String suggestHandle() {
 		for (int attempt = 0; attempt < MAX_SUGGESTION_ATTEMPTS; attempt++) {
