@@ -5,7 +5,7 @@ const HANDLE_PATTERN = /^[A-Za-z0-9_]+(\.[A-Za-z0-9_]+)*$/;
 export const handleSchema = z.string().min(3).max(30).regex(HANDLE_PATTERN);
 
 export const socialLoginResponseSchema = z.object({
-  isNewMember: z.boolean(),
+  needsProfileSetup: z.boolean(),
   memberId: z.number(),
 });
 

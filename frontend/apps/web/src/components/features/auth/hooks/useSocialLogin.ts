@@ -18,9 +18,11 @@ export const useSocialLogin = () => {
     mutate(
       { provider, token },
       {
-        onSuccess: ({ isNewMember }) => {
+        onSuccess: ({ needsProfileSetup }) => {
           postToNative({ type: "AUTH_LOGIN_SUCCESS" });
-          router.replace(isNewMember ? AUTH_ROUTES.signup : AUTH_ROUTES.home);
+          router.replace(
+            needsProfileSetup ? AUTH_ROUTES.signup : AUTH_ROUTES.home,
+          );
         },
       },
     );

@@ -85,7 +85,7 @@ test("Apple 로그인에 성공하면 홈으로 이동한다", async () => {
 test("신규 회원이면 프로필 입력으로 이동한다", async () => {
   server.use(
     http.post(apiUrl(AUTH_ENDPOINTS.kakaoLogin), () =>
-      HttpResponse.json({ isNewMember: true, memberId: 2 }),
+      HttpResponse.json({ needsProfileSetup: true, memberId: 2 }),
     ),
   );
   renderScreen();
