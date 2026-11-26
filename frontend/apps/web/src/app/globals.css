@@ -15,7 +15,11 @@
   --color-gray-300: #b7b7bb;
   --color-gray-700: #343434;
   --color-gray-800: #272727;
+  --color-gray-900: #0f1013;
   --color-danger: #fe0000;
+  --color-logo-red: #e8392a;
+  --color-kakao: #fee500;
+  --color-naver: #02c75a;
 
   --radius-*: initial;
   --radius-sm: 10px;

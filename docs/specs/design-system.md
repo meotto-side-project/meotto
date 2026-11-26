@@ -23,6 +23,10 @@ Figma 프레임: iPhone 17 (402×874).
 | `gray-300`        | `#b7b7bb`             |                                                           |
 | `gray-700`        | `#343434`             | 모달 제목, 보조 버튼 글자                                 |
 | `gray-800`        | `#272727`             | 기본 버튼 배경                                            |
+| `gray-900`        | `#0f1013`             | 카카오 버튼 글자                                          |
+| `logo-red`        | `#e8392a`             | 로고 워드마크, 토마토 심볼 몸통                           |
+| `kakao`           | `#fee500`             | 카카오 로그인 버튼 배경                                   |
+| `naver`           | `#02c75a`             | 네이버 로그인 버튼 배경                                   |
 | `danger`          | `#fe0000`             | 탈퇴하기 등 위험 동작 글자 (팔레트 밖, 탈퇴창에서만 확인) |
 
 로고는 흰/검정 배경 2종.
@@ -62,14 +66,15 @@ Figma 프레임: iPhone 17 (402×874).
 
 - `Logo`: `Meotto` 워드마크(Figma 11/16 `Union` 노드). `variant` solid(기본, 색은 `currentColor`라 검정/흰색 모두 가능) / outline(흰 채움 + 검정 외곽선, Figma `8177:2123`).
 - `Icon/*`: Home, Star, Emoji, Bell, Download, Close, ChevronLeft. Home·Star·Emoji는 `filled`(선택 상태) 지원. 기본은 보조기기에서 숨김(`aria-hidden`). Figma 이름 `iconoir:bell` 중 두 번째는 모양이 다운로드 아이콘이라 `Download`로 이름 붙였다.
+- `TomatoSymbol`: 로고 위쪽 토마토 심볼(몸통 `logo-red` + 꼭지 `green` multiply).
+- `SocialIcon/*`: Kakao, Naver, Apple 로고. `currentColor`.
+- 소셜 로그인 버튼은 `features/auth/components/SocialLoginButton`(카카오 `kakao`, 네이버 `naver`, Apple 검정, 높이 75px, 반경 `md`).
 - `BottomTabBar`: Home / My / Friend. 다크 필(`gray-800`, 반경 `md`) + 선택 탭 라이트 필(`gray-50`, 반경 `nav-item`), 선택 탭은 아이콘이 `filled`. 라우팅은 연결하지 않았고 `activeTab`/`onSelect`만 받는다. 탭바 뒤 그라디언트 페이드(118px)는 포함하지 않았다.
 
 미구현:
 
-- 소셜 로그인 버튼(카카오 노랑 / 네이버 초록 / Apple 검정, 로고 아이콘 + 라벨).
 - 키워드 칩, 토글, 아바타 + 라벨 리스트 행, 배지 아이콘 타일.
 - 원형 아이콘 버튼(뒤로가기: 흰색 30% + 그림자, 닫기: `gray-200` 40%).
-- 로고 아이콘 부분(토마토 심볼 154px).
 - 토스트(서버 오류 안내용, [auth-onboarding.md](auth-onboarding.md) 가입 프로필 설정 화면)와 오류 상태 입력창(빨간 계열 테두리 + 하단 문구). 둘 다 Figma에 디자인이 없어 모양·문구·노출 시간은 디자이너 확인이 필요하다.
 
 ## Open Questions

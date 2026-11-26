@@ -15,6 +15,7 @@
 | design-system | 하드(문서) | 구현 대상 아님 | 색상·타이포·버튼 토큰은 `docs/specs/design-system.md` 기준으로 쓴다 |
 
 ## 결정 사항
+- 로그인 상태 유지: 토큰은 HttpOnly 쿠키가 맡고, 네이티브는 로그인 성공 시 웹이 보낸 `AUTH_LOGIN_SUCCESS`로 로그인 플래그만 저장한다. 앱은 시작할 때 이 플래그로 분기하고 `AUTH_STATE`로 웹에 전달한다.
 - 닉네임의 길이·허용 문자 제한을 확정한다: 2~10자, 한글/영문/숫자/공백만 허용(이모지·특수문자 금지). `mypage-settings` Plan에서 먼저 확정한 규칙과 동일하다(`MemberErrorCode.INVALID_NICKNAME`). 사진 선택은 네이티브 앨범으로 확정한다(아래 항목).
 - 공유 링크 경로 형식을 확정한다: `https://meotto.io.kr/s/{token}`. 토큰 기반 경로라 아이디(handle)를 노출하지 않는다.
 - 공유 링크 토큰의 무효·만료 처리를 확정한다: **만료 없음**(TTL 없이 영구 유효), **재발급 기능 없음**(MVP 범위에 토큰 재설정 액션을 두지 않음). 회원이 탈퇴(소프트 삭제)하면 그 토큰만 자연히 무효가 된다. 토큰은 회원당 하나(get-or-create 방식으로 발급, `mypage-settings` C-6이 재사용)이며, 생성·보관 비용은 기존 MySQL 컨테이너에 문자열 한 줄을 더하는 수준이라 추가 금전적 비용이 들지 않는다.
@@ -26,7 +27,7 @@
 - 같은 이유로 `mypage-settings` `GET /api/members/me`(C-1) 응답에도 `profileCompleted`(`handle != null`) 필드를 추가해, 로그인 API를 다시 타지 않고 쿠키로만 앱이 재시작되는 경우에도 프로필 완료 여부를 판단할 수 있게 한다.
 - 아이디(`@아이디`) 랜덤 제안은 가입 전에 호출되는 `C-2`가 담당한다. 아이디 유일성은 `C-3`에서 DB 유니크 제약과 서비스 검증으로 보장한다.
 - 가입 프로필 입력 화면의 사진 선택은 `mypage-settings` `POST /api/members/me/profile-image`를 그대로 재사용한다. FE가 사진을 먼저 그 API로 업로드해 `imageUrl`을 받고, 그 값을 `C-3`의 `profileImageUrl`에 담아 보낸다. 이 엔드포인트는 로그인(인증)이 필요한데, 소셜 로그인(`C-1`) 시점에 신규 회원도 이미 토큰이 발급되므로(아래 "토큰 전달 방식 확정") 프로필 입력 화면에서도 인증된 상태로 호출할 수 있다.
-- **토큰 전달 방식 확정**: `access_token`/`refresh_token` 둘 다 HttpOnly·Secure·SameSite=None 쿠키로 전달한다. 응답 본문에는 토큰 값이 들어가지 않는다 (`global/security/jwt`, `cookie` 기존 구현 그대로). `httpOnly` 쿠키는 클라이언트 JS/네이티브가 값을 직접 읽을 수 없으므로, 네이티브 보안 저장소로 토큰 "값"을 옮기는 방식은 애초에 불가능하다 — 네이티브 쪽은 웹뷰의 쿠키 저장소가 요청마다 자동으로 쿠키를 붙이는 것에 의존하게 된다. 로그인 상태를 어디에 "보관"할지(웹뷰 쿠키 vs 네이티브 보안 저장소)는 이 제약을 반영해 FE가 다시 검토해야 하는 Spec의 미해결 질문으로 남긴다.
+- **토큰 전달 방식 확정**: `access_token`/`refresh_token` 둘 다 HttpOnly·Secure·SameSite=None 쿠키로 전달한다. 응답 본문에는 토큰 값이 들어가지 않는다 (`global/security/jwt`, `cookie` 기존 구현 그대로). `httpOnly` 쿠키는 클라이언트 JS/네이티브가 값을 직접 읽을 수 없으므로, 네이티브 보안 저장소로 토큰 "값"을 옮기는 방식은 애초에 불가능하다 — 네이티브 쪽은 웹뷰의 쿠키 저장소가 요청마다 자동으로 쿠키를 붙이는 것에 의존하게 된다. 따라서 네이티브는 토큰이 아니라 로그인 플래그만 보관한다(위 "결정 사항").
 - **가입 완료 판단(FE 사용 규칙)**: 로그인 직후에는 `C-1`의 `needsProfileSetup`, 앱이 로그인 API를 거치지 않고 쿠키로만 켜질 때는 `GET /api/members/me`(`mypage-settings` C-1)의 `profileCompleted`로 프로필 설정 화면과 홈을 가른다(`needsProfileSetup=true` 또는 `profileCompleted=false`이면 프로필 설정 화면). 프로필 설정 화면의 이름(카카오 닉네임 또는 애플 기본값)과 사진 초기값은 `/me`로 채운다. BE 구현은 완료(#103)했고 Swagger 반영 시점에 `isNewMember`를 쓰던 FE(MEO-54)를 `needsProfileSetup`으로 바꾼다.
 - **프로필 설정 화면 접근 가드**: 라우트 진입 시 `GET /api/members/me`의 `profileCompleted`가 `true`이면 홈으로 이동한다.
 - **오류 처리(FE)**: `INVALID_NICKNAME`(400)은 이름 입력창, `HANDLE_DUPLICATED`(409)·`INVALID_HANDLE`(400)은 아이디 입력창 아래에 문구와 빨간 테두리로 보여준다. 5xx와 네트워크 실패는 토스트로 안내하고 입력값은 유지한다. `ALREADY_SIGNED_UP`(409)은 동시 가입이나 연타로만 생기므로 가입이 이미 끝난 것으로 보고 홈으로 이동한다.
@@ -61,8 +62,8 @@
 ## 웹뷰 브리지 메시지 계약
 | 방향 | type | payload | 용도 | 상태 |
 |---|---|---|---|---|
-| 웹 → 네이티브 | `AUTH_LOGIN_SUCCESS` | `{ ... }` | 로그인 성공 알림. **주의**: 토큰이 HttpOnly 쿠키라 웹뷰 JS가 토큰 값 자체를 읽어 payload에 넣을 수 없음 — "토큰 보관 요청"이 아니라 "로그인 성공 사실"만 알리는 용도로 재검토 필요 | 보류: 로그인 상태 유지 방식 |
-| 네이티브 → 웹 | `AUTH_STATE` | `{ loggedIn }` | 시작 시 로그인 상태 전달 | 보류: 로그인 상태 유지 방식 |
+| 웹 → 네이티브 | `AUTH_LOGIN_SUCCESS` | 없음 (`{ type }`만) | 로그인 성공 알림. 네이티브가 "로그인했음" 플래그를 저장한다. 토큰은 HttpOnly 쿠키라 payload에 없음 | 확정 |
+| 네이티브 → 웹 | `AUTH_STATE` | `{ loggedIn }` | 시작 시 네이티브 플래그 기준 로그인 상태 전달 | 확정. 쿠키가 만료됐는데 플래그가 남는 경우(웹이 401을 받으면 플래그를 지우는 보정)는 별도 확인 필요 |
 | 웹 → 네이티브 | `PICK_PROFILE_IMAGE` | `{ ... }` | 프로필 사진 네이티브 선택(앨범) 요청. 가입 프로필 설정 화면과 프로필 변경 시트가 같이 쓴다 | 보류: 계약 미정 |
 | 네이티브 → 웹 | `PROFILE_IMAGE_PICKED` | `{ ... }` | 선택 결과 전달. 선택한 파일을 웹이 어떻게 받아 `profile-image`로 올릴지(파일 전달 방식, 네이티브 직접 업로드 여부)가 정해지지 않았다. 취소 결과도 필요 | 보류: 파일 전달 방식 |
 
@@ -71,7 +72,7 @@
 2. 공통 준비 `T-F01-00`, MSW 구성 `T-F01-98`(MEO-38/PR #25로 대체)
 3. BE Task들 ∥ FE Task들(MSW 목)
 4. 실서버 연동 확인 `T-F01-99` (BE 완료 후)
-5. 보류 Task(`T-F01-01`, `T-F03-05`, `T-F03-07`, `T-F04-03`)는 질문 해소 후 `/plan-feature auth-onboarding`(갱신)으로 계약을 확정한 뒤 시작
+5. 보류 Task(`T-F01-01`, `T-F03-07`, `T-F04-03`)는 질문 해소 후 `/plan-feature auth-onboarding`(갱신)으로 계약을 확정한 뒤 시작
 
 ## 테스트 전략
 - BE: `MemberService`(아이디 제안·중복), `AuthService`(소셜 토큰 검증은 외부 호출을 목킹) 서비스 단위 테스트
@@ -82,16 +83,16 @@
 | ID | 제목 | 영역 | F-ID / AC | 수정 경로 | 선행 | 검증 방법 | Linear |
 |---|---|---|---|---|---|---|---|
 | T-F01-00 | 웹 공통 준비: API 클라이언트, `{name,message}` 에러 파서, 인증 쿼리 키·엔드포인트 상수, auth Zod 스키마 | FE-web | F-01~F-04 | frontend/apps/web/src/lib/**, frontend/apps/web/src/components/features/auth/constants/**, frontend/apps/web/src/components/features/auth/schemas/** | 계약 C-2 확정 | cd frontend && pnpm lint && pnpm check-types | MEO-44 |
-| T-F01-01 | 네이티브 스플래시와 시작 분기(온보딩 또는 홈) | FE-mobile | F-01 | frontend/apps/mobile/src/** | 보류: 로그인 상태 유지 방식, 스플래시 분기 조건 | 수동 확인: 시뮬레이터. cd frontend && pnpm lint && pnpm check-types | MEO-45 |
+| T-F01-01 | 네이티브 스플래시와 시작 분기(온보딩 또는 홈) | FE-mobile | F-01 | frontend/apps/mobile/src/** | 보류: 스플래시 분기 조건 | 수동 확인: 시뮬레이터. cd frontend && pnpm lint && pnpm check-types | MEO-45 |
 | T-F01-98 | MSW 구성: 별도 구현 없음. `msw` 설치와 `NEXT_PUBLIC_API_MOCKING` 구성은 MEO-38(PR #25)에서 한다 | FE-web | - | - | T-F01-00 | MEO-38 머지로 대체. 인증 API 핸들러(`handlers/auth.ts`)는 각 FE Task가 계약 표 기준으로 만든다 | MEO-38 (연결) |
 | T-F02-01 | 온보딩 3장 슬라이드(인디케이터, 카피, 마지막 장 `멋토 시작하기`) | FE-web | F-02 AC1 | frontend/apps/web/src/app/onboarding/**, frontend/apps/web/src/components/features/onboarding/** | T-F01-00 | cd frontend && pnpm lint && pnpm check-types. AC는 수동 확인(스토리 도구 미설치) | MEO-50 |
 | T-F03-01 | `Member` Entity·Repository·마이그레이션 (스키마 승인 필요) | BE | F-03 | backend/src/main/java/com/meotto/api/domain/member/** | 데이터 모델 승인 | cd backend && ./gradlew spotlessCheck checkstyleMain test | MEO-46 |
 | T-F03-02 | 소셜 로그인 API(카카오·Apple)와 토큰 발급 | BE | F-03 AC2 | backend/src/main/java/com/meotto/api/domain/auth/**, backend/src/main/java/com/meotto/api/global/security/** | T-F03-01 | cd backend && ./gradlew spotlessCheck checkstyleMain test | MEO-26 (연결, 완료) |
 | T-F03-03 | 아이디 랜덤 제안 API(C-2) | BE | F-03 | backend/src/main/java/com/meotto/api/domain/member/** | T-F03-01, 계약 C-2 확정 | cd backend && ./gradlew spotlessCheck checkstyleMain test | MEO-51 |
 | T-F03-04 | 가입 프로필 완료 API(C-3) 아이디 유일성 검증 | BE | F-03 | backend/src/main/java/com/meotto/api/domain/member/** | T-F03-01, 계약 C-3 확정 — 구현 완료 | cd backend && ./gradlew spotlessCheck checkstyleMain test | MEO-52 |
-| T-F03-05 | 로그인 화면(3개 소셜 버튼)과 로그인 성공 후 홈 이동 | FE-web | F-03 AC2 | frontend/apps/web/src/app/login/**, frontend/apps/web/src/components/features/auth/** | T-F01-98, 보류: 로그인 상태 유지 방식 | cd frontend && pnpm lint && pnpm check-types. 수동 확인: MSW 목 | MEO-54 |
+| T-F03-05 | 로그인 화면(3개 소셜 버튼)과 로그인 성공 후 홈 이동 | FE-web | F-03 AC2 | frontend/apps/web/src/app/login/**, frontend/apps/web/src/components/features/auth/**, frontend/apps/web/src/lib/bridge/** | T-F01-98 | cd frontend && pnpm lint && pnpm check-types. 수동 확인: MSW 목 | MEO-54 |
 | T-F03-06 | 신규 가입 프로필 설정 화면(이름, 미리 채운 멋토 아이디, 사진 선택), 입력창 오류 표시, 서버 오류 토스트, 가입 완료 회원 접근 가드. 뒤로가기는 로그인 화면으로만 이동(별도 취소 API 없음) | FE-web | F-03 | frontend/apps/web/src/app/signup/**, frontend/apps/web/src/components/features/auth/** | T-F01-98, T-F03-05, 계약 C-3 확정. 사진 선택 부분은 `mypage-settings`의 `T-F40-04`(소프트, 브리지 계약 보류)에 걸리며 그 전에는 사진 UI를 목으로 둔다 | cd frontend && pnpm lint && pnpm check-types. 수동 확인: MSW 목 | MEO-57 |
-| T-F03-07 | 소셜 SDK 연동과 토큰 보관 브리지 | FE-mobile | F-03 | frontend/apps/mobile/src/** | 보류: 로그인 상태 유지 방식 | 수동 확인: 실기기. cd frontend && pnpm lint && pnpm check-types | MEO-47 |
+| T-F03-07 | 소셜 SDK 연동과 토큰 보관 브리지 | FE-mobile | F-03 | frontend/apps/mobile/src/** | 보류: 소셜 토큰 요청 브리지 계약 | 수동 확인: 실기기. cd frontend && pnpm lint && pnpm check-types | MEO-47 |
 | T-F04-01 | 공유 링크 해석 API(C-4)와 `ShareLink` Entity | BE | F-04 AC3 | backend/src/main/java/com/meotto/api/domain/sharelink/** | T-F03-01, 계약 C-4 확정 | cd backend && ./gradlew spotlessCheck checkstyleMain test | MEO-53 |
 | T-F04-02 | 공유 링크 진입 라우트에서 토마토 보내기(F-24)로 이동 | FE-web | F-04 AC3 | frontend/apps/web/src/app/(public)/** | T-F01-98, 링크 경로 형식 확정 | cd frontend && pnpm lint && pnpm check-types. 수동 확인: MSW 목 | MEO-55 |
 | T-F04-03 | 딥링크 수신과 앱 설치 여부 분기(앱 로그인 또는 앱스토어) | FE-mobile | F-04, home F-16 | frontend/apps/mobile/src/** | 링크 경로 형식 확정 / 보류: 앱 설치 감지 방식 | 수동 확인: 실기기. cd frontend && pnpm lint && pnpm check-types | MEO-48 |
@@ -100,7 +101,6 @@
 AC 연결: F-02 AC1 → T-F02-01. F-03 AC2 → T-F03-02, T-F03-05. F-04 AC3 → T-F04-01, T-F04-02. 연결되지 않은 AC 없음. F-01에는 AC가 없다(분기 조건이 보류라 AC 작성 불가).
 
 ## 보류 질문
-- 로그인 상태 유지 방식과 토큰 보관 위치 (Spec Open Questions 1)
 - 스플래시 이후 분기 조건(로그인·온보딩 본 여부)
 - 프로필을 마치지 않은 회원이 프로필 설정 관련 API(`me`, `handle-suggestion`, `profile-image`, `signup-profile`, `logout`) 외의 API를 부를 때의 처리(BE가 아직 언급하지 않음, 막지 않으면 FE 가드만으로는 우회 가능)
 - 사진 파일 전달 방식: 네이티브가 고른 사진을 웹이 받아 올릴지 네이티브가 직접 올릴지(위 브리지 표 `PICK_PROFILE_IMAGE` 계약)

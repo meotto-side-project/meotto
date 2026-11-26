@@ -4,6 +4,11 @@ const HANDLE_PATTERN = /^[A-Za-z0-9_]+(\.[A-Za-z0-9_]+)*$/;
 
 export const handleSchema = z.string().min(3).max(30).regex(HANDLE_PATTERN);
 
+export const socialLoginResponseSchema = z.object({
+  needsProfileSetup: z.boolean(),
+  memberId: z.number(),
+});
+
 export const handleSuggestionResponseSchema = z.object({
   handle: handleSchema,
 });
@@ -14,6 +19,7 @@ export const signupProfileRequestSchema = z.object({
   profileImageUrl: z.string().optional(),
 });
 
+export type SocialLoginResponse = z.infer<typeof socialLoginResponseSchema>;
 export type HandleSuggestionResponse = z.infer<
   typeof handleSuggestionResponseSchema
 >;
