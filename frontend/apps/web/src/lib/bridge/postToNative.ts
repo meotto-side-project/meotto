@@ -4,7 +4,8 @@ declare global {
   }
 }
 
-export type NativeBridgeMessage = { type: "AUTH_LOGIN_SUCCESS" };
+export type NativeBridgeMessage =
+  { type: "AUTH_LOGIN_SUCCESS" } | { type: "PICK_PROFILE_IMAGE" };
 
 export function postToNative(message: NativeBridgeMessage): void {
   if (typeof window === "undefined") {
