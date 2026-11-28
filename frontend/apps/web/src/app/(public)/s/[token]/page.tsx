@@ -9,6 +9,8 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+export const instant = false;
+
 type Props = { params: Promise<{ token: string }> };
 
 export default async function ShareLinkPage({ params }: Props) {
