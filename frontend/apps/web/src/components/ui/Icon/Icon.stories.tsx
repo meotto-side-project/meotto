@@ -6,6 +6,7 @@ import CloseIcon from "./CloseIcon";
 import DownloadIcon from "./DownloadIcon";
 import EmojiIcon from "./EmojiIcon";
 import HomeIcon from "./HomeIcon";
+import PencilIcon from "./PencilIcon";
 import StarIcon from "./StarIcon";
 
 const meta = {
@@ -25,6 +26,7 @@ const outline = [
   ["Download", DownloadIcon],
   ["Close", CloseIcon],
   ["ChevronLeft", ChevronLeftIcon],
+  ["Pencil", PencilIcon],
 ] as const;
 
 const filled = [

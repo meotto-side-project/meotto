@@ -66,7 +66,11 @@ Figma 프레임: iPhone 17 (402×874).
 - `Modal`: 흰 배경, 반경 `md`, 패딩 20px, 그림자 `0 0 17.5px rgba(0,0,0,0.2)`, 제목(18px SemiBold, `gray-700`) + 설명 + 버튼 영역. `role="dialog"`. 화면 전체 오버레이(딤)는 Figma에 없어 포함하지 않았다.
 
 - `Logo`: `Meotto` 워드마크(Figma 11/16 `Union` 노드). `variant` solid(기본, 색은 `currentColor`라 검정/흰색 모두 가능) / outline(흰 채움 + 검정 외곽선, Figma `8177:2123`).
-- `Icon/*`: Home, Star, Emoji, Bell, Download, Close, ChevronLeft. Home·Star·Emoji는 `filled`(선택 상태) 지원. 기본은 보조기기에서 숨김(`aria-hidden`). Figma 이름 `iconoir:bell` 중 두 번째는 모양이 다운로드 아이콘이라 `Download`로 이름 붙였다.
+- `Icon/*`: Home, Star, Emoji, Bell, Download, Close, ChevronLeft, Pencil. Home·Star·Emoji는 `filled`(선택 상태) 지원. 기본은 보조기기에서 숨김(`aria-hidden`). Figma 이름 `iconoir:bell` 중 두 번째는 모양이 다운로드 아이콘이라 `Download`로 이름 붙였다.
+- `IconButton`: 원형 아이콘 버튼. `variant` back(흰색 30% + 그림자, 46px) / dark(`gray-800`, 흰 아이콘, 38px) / clear(`gray-200` 40%, 24px).
+- `TextField`: 라벨 + 입력창 + 오류 문구. 오류 상태는 `danger` 테두리와 입력창 아래 문구(`aria-invalid`, `aria-describedby` 연결), 입력 중에는 지우기 버튼. 오류 상태는 Figma에 없어 디자인 토큰으로 만들었다.
+- `Toast`: 하단 안내. `danger` 배경 + 흰 글자, `role="status"`, 3초 노출(`useToast`). Figma에 없어 디자인 토큰으로 만들었고 모양·노출 시간은 디자이너 확인이 필요하다.
+- `Avatar`: 원형 프로필 사진(기본 실루엣 포함). 기본 실루엣은 Figma 에셋을 읽지 않고 근사해서 그렸다.
 - `TomatoSymbol`: 로고 위쪽 토마토 심볼(몸통 `logo-red` + 꼭지 `green` multiply).
 - `SocialIcon/*`: Kakao, Naver, Apple 로고. `currentColor`.
 - 소셜 로그인 버튼은 `features/auth/components/SocialLoginButton`(카카오 `kakao`, 네이버 `naver`, Apple 검정, 높이 75px, 반경 `md`).
@@ -75,8 +79,7 @@ Figma 프레임: iPhone 17 (402×874).
 미구현:
 
 - 키워드 칩, 토글, 아바타 + 라벨 리스트 행, 배지 아이콘 타일.
-- 원형 아이콘 버튼(뒤로가기: 흰색 30% + 그림자, 닫기: `gray-200` 40%).
-- 토스트(서버 오류 안내용, [auth-onboarding.md](auth-onboarding.md) 가입 프로필 설정 화면)와 오류 상태 입력창(빨간 계열 테두리 + 하단 문구). 둘 다 Figma에 디자인이 없어 모양·문구·노출 시간은 디자이너 확인이 필요하다.
+- 닫기 원형 아이콘 버튼(`gray-200` 40%)은 `IconButton`의 `clear`(입력 지우기용, 24px)만 있고 계정관리 시트용 닫기 버튼은 아직 없다.
 
 ## Open Questions
 

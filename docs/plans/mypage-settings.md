@@ -24,14 +24,14 @@
 - 회원탈퇴(C-8) 시 데이터 처리를 **소프트 삭제**로 확정한다. `Member`는 기존 `BaseEntity.softDelete()` 패턴을 그대로 쓴다(삭제성 DML 아님, `deleted_at` UPDATE). 보낸/받은 도장 데이터도 같은 방식(소프트 삭제)으로 처리하기로 정책은 확정했지만, `stamp` 도메인 자체가 아직 없어 그 부분 구현은 도메인 생성 후로 보류한다.
 - `보낸 칭찬 공개`(F-43)의 적용 범위를 Spec 문구 그대로 확정한다: 설정은 **"상대(받는 사람)의 친구들"에게만** 적용된다. 받는 사람 본인, 받는 사람과 친구가 아닌 회원, 비회원(공유 링크)에게는 이 설정과 무관하게 **항상 전체 공개**다.
 - 칭찬판 공유 링크(C-6)의 경로 형식을 확정한다: `https://meotto.io.kr/s/{token}`. `auth-onboarding` C-4(`GET /api/share-links/{token}`)와 같은 토큰을 재사용한다. 토큰 무효·만료 처리도 확정됨(만료 없음, 재발급 없음, 회원 탈퇴 시에만 무효) — `auth-onboarding` Plan "결정 사항" 참고.
-- 프로필 사진 선택은 네이티브 사진 선택(앨범)으로 확정한다(카메라 촬영은 Figma에 없음). 가입 프로필 설정 화면(`auth-onboarding` T-F03-06)과 프로필 변경 시트가 같은 브리지(`T-F40-04`)를 쓴다. 선택한 파일을 웹이 어떻게 받아 올릴지(브리지 계약, `auth-onboarding`의 "웹뷰 브리지 메시지 계약" 표)는 여전히 보류.
+- 프로필 사진 선택은 네이티브 사진 선택(앨범)으로 확정한다(카메라 촬영은 Figma에 없음). 가입 프로필 설정 화면(`auth-onboarding` T-F03-06)과 프로필 변경 시트가 같은 브리지(`T-F40-04`)를 쓴다. 브리지 계약은 `auth-onboarding`의 "웹뷰 브리지 메시지 계약" 표로 확정했다(앱은 사진만 고르고 업로드는 웹이 한다).
 - 화면 라벨은 `닉네임`이 아니라 `이름`이다(서버 필드는 `nickname`). `@아이디` 표기는 계정관리 시트의 내 정보처럼 아이디를 보여주는 곳에만 붙인다.
 
 ## 기술 설계
 - 프로필·설정은 `Member` 한 Entity의 컬럼이다. 설정 변경은 `PATCH`로 일부 필드만 보낸다.
 - 아이디는 **가입 후 변경 불가**로 확정되어, 프로필 변경 시트에서 아이디 항목을 두지 않는다(Spec의 시트 구성과 같다).
 - `보낸 칭찬 공개`(F-43) 설정 저장과 적용 범위(상대의 친구들에게만 적용) 모두 확정됐다. 마스킹 판정은 홈·칭찬판 API가 공통으로 쓰는 BE 서비스 하나(`T-F43-02`)로 두되, `stamp`·`friend` 도메인이 아직 없어 구현은 보류다.
-- 프로필 사진 업로드는 기존 `FileStorageService`(S3)를 쓰고, 백엔드 용량·포맷 제한은 확정됐다("결정 사항" 참고). 네이티브 사진 선택(앨범)으로 확정했고, 선택한 파일을 웹으로 넘기는 브리지 계약만 보류다.
+- 프로필 사진 업로드는 기존 `FileStorageService`(S3)를 쓰고, 백엔드 용량·포맷 제한은 확정됐다("결정 사항" 참고). 네이티브 사진 선택(앨범)으로 확정했고, 브리지 계약도 확정했다(`auth-onboarding` 브리지 표).
 - 로그아웃·회원탈퇴 시 푸시 토큰 해제는 `notifications`의 C-2를 호출한다.
 
 ## 프론트엔드 범위
@@ -80,8 +80,8 @@
 | T-F40-00 | 웹 공통 준비: member·settings 쿼리 키·엔드포인트 상수, Zod 스키마, 계정관리 바텀시트 틀 | FE-web | F-40~F-45 | frontend/apps/web/src/components/features/account/** | T-F01-00, 계약 C-1 확정 | cd frontend && pnpm lint && pnpm check-types | MEO-66 |
 | T-F40-01 | 내 정보 조회 API(C-1) | BE | F-40 | backend/src/main/java/com/meotto/api/domain/member/** | T-F03-01(auth-onboarding), 계약 C-1 확정 | cd backend && ./gradlew spotlessCheck checkstyleMain test | MEO-67 |
 | T-F40-02 | 프로필 변경 API(C-2)와 사진 업로드(C-3) | BE | F-40 AC4 | backend/src/main/java/com/meotto/api/domain/member/**, backend/src/main/java/com/meotto/api/global/infrastructure/file/** | T-F40-01, 계약 C-2·C-3 확정 | cd backend && ./gradlew spotlessCheck checkstyleMain test | MEO-73 |
-| T-F40-03 | 내 프로필 영역과 프로필 변경 시트 | FE-web | F-40 AC4 | frontend/apps/web/src/components/features/account/** | T-F40-00, T-F01-98, 계약 C-2·C-3 확정 / 보류: 사진 선택 브리지 계약(`T-F40-04`). 사진 UI는 그 전까지 목으로 둔다 | cd frontend && pnpm lint && pnpm check-types. 수동 확인: MSW 목 | MEO-74 |
-| T-F40-04 | 사진 선택 권한·브리지(네이티브 앨범, 가입 프로필 설정 화면과 프로필 변경 시트가 공유) | FE-mobile | F-40, auth-onboarding F-03 | frontend/apps/mobile/src/** | 보류: 브리지 계약(파일 전달 방식) | 수동 확인: 실기기 | MEO-68 |
+| T-F40-03 | 내 프로필 영역과 프로필 변경 시트 | FE-web | F-40 AC4 | frontend/apps/web/src/components/features/account/** | T-F40-00, T-F01-98, 계약 C-2·C-3 확정 / 사진 선택 브리지 계약 확정(앱 쪽 구현은 `T-F40-04`, 그 전에는 브리지 응답을 목으로 대체) | cd frontend && pnpm lint && pnpm check-types. 수동 확인: MSW 목 | MEO-74 |
+| T-F40-04 | 사진 선택 권한·브리지(네이티브 앨범, 가입 프로필 설정 화면과 프로필 변경 시트가 공유) | FE-mobile | F-40, auth-onboarding F-03 | frontend/apps/mobile/src/** | 브리지 계약 확정(`auth-onboarding` 브리지 표) | 수동 확인: 실기기 | MEO-68 |
 | T-F41-01 | 공유 링크 발급 API(C-6) | BE | F-41 | backend/src/main/java/com/meotto/api/domain/sharelink/** | T-F04-01(auth-onboarding), 계약 C-6 확정 | cd backend && ./gradlew spotlessCheck checkstyleMain test | MEO-69 |
 | T-F41-02 | 칭찬판 공유 영역(QR, 링크 복사, SNS 아이콘) | FE-web | F-41 | frontend/apps/web/src/components/features/account/share/** | T-F40-00, T-F01-98, 계약 C-6 확정 / 보류: SNS 아이콘 구성 | cd frontend && pnpm lint && pnpm check-types. 수동 확인: MSW 목 | MEO-75 |
 | T-F42-01 | 설정 저장 API(C-4) | BE | F-42 AC1 | backend/src/main/java/com/meotto/api/domain/member/** | T-F40-01, 계약 C-4 확정 | cd backend && ./gradlew spotlessCheck checkstyleMain test | MEO-76 |
@@ -99,7 +99,6 @@ AC 연결: 알림 토글 AC → T-F42-01, T-F42-02. `내 칭찬판 공개` 적�
 
 ## 보류 질문
 - `내 칭찬판 공개` Off일 때 제한 화면의 노출 범위 (`friends`와 공유)
-- 사진 선택 브리지 계약: 네이티브가 고른 파일을 웹이 어떻게 받아 올릴지(`T-F40-04`, `auth-onboarding` 브리지 표). 사진 선택 방식(네이티브 앨범)과 이미지 비율 제한(없음)은 확정됨
 - SNS 공유 아이콘 구성(Spec에 "구글"이 있으나 로그인 3종과 다름)
 
 확정됨(참고): 탈퇴 시 데이터 처리(소프트 삭제), `보낸 칭찬 공개` 적용 범위(상대의 친구들에게만 적용), 공유 링크 경로 형식과 토큰 무효·만료 처리(`https://meotto.io.kr/s/{token}`, 만료 없음, 재발급 없음, 탈퇴 시에만 무효), 닉네임 길이/허용 문자, 아이디(handle) 규칙, 프로필 사진 업로드 백엔드 제한(C-2·C-3) — "결정 사항" 참고
