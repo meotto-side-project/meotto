@@ -4,6 +4,14 @@ import { resolveShareLink } from "@/components/features/share-link/utils/resolve
 
 const SHARE_LINK_PATH = /^\/s\/([^/]+)\/?$/;
 
+function decodeToken(encoded: string): string | null {
+  try {
+    return decodeURIComponent(encoded);
+  } catch {
+    return null;
+  }
+}
+
 // 페이지는 스트리밍으로 렌더링되어 notFound()로는 404 상태를 줄 수 없다.
 // 유효하지 않은 토큰은 렌더링 전에 여기서 404로 응답한다.
 export async function proxy(request: NextRequest) {
@@ -12,7 +20,8 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const receiver = await resolveShareLink(decodeURIComponent(match[1]));
+  const token = decodeToken(match[1]);
+  const receiver = token === null ? null : await resolveShareLink(token);
   if (!receiver) {
     return NextResponse.rewrite(new URL("/share-link-not-found", request.url), {
       status: 404,

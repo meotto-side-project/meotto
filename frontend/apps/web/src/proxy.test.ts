@@ -22,3 +22,7 @@ test("존재하지 않는 토큰은 404로 응답한다", async () => {
 test("탈퇴한 회원의 토큰은 404로 응답한다", async () => {
   expect((await run(SHARE_LINK_MOCK_TOKENS.withdrawn)).status).toBe(404);
 });
+
+test("잘못된 퍼센트 인코딩 토큰은 404로 응답한다", async () => {
+  expect((await run("%E0%A4%A")).status).toBe(404);
+});
