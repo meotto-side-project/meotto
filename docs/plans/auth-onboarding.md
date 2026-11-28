@@ -94,7 +94,7 @@
 | T-F03-06 | 신규 가입 프로필 설정 화면(이름, 미리 채운 멋토 아이디, 사진 선택), 입력창 오류 표시, 서버 오류 토스트, 가입 완료 회원 접근 가드. 뒤로가기는 로그인 화면으로만 이동(별도 취소 API 없음) | FE-web | F-03 | frontend/apps/web/src/app/signup/**, frontend/apps/web/src/components/features/auth/** | T-F01-98, T-F03-05, 계약 C-3 확정. 사진 선택 부분은 `mypage-settings`의 `T-F40-04`(소프트, 브리지 계약 보류)에 걸리며 그 전에는 사진 UI를 목으로 둔다 | cd frontend && pnpm lint && pnpm check-types. 수동 확인: MSW 목 | MEO-57 |
 | T-F03-07 | 소셜 SDK 연동과 토큰 보관 브리지 | FE-mobile | F-03 | frontend/apps/mobile/src/** | 보류: 소셜 토큰 요청 브리지 계약 | 수동 확인: 실기기. cd frontend && pnpm lint && pnpm check-types | MEO-47 |
 | T-F04-01 | 공유 링크 해석 API(C-4)와 `ShareLink` Entity | BE | F-04 AC3 | backend/src/main/java/com/meotto/api/domain/sharelink/** | T-F03-01, 계약 C-4 확정 | cd backend && ./gradlew spotlessCheck checkstyleMain test | MEO-53 |
-| T-F04-02 | 공유 링크 진입 라우트에서 토마토 보내기(F-24)로 이동 | FE-web | F-04 AC3 | frontend/apps/web/src/app/(public)/** | T-F01-98, 링크 경로 형식 확정 | cd frontend && pnpm lint && pnpm check-types. 수동 확인: MSW 목 | MEO-55 |
+| T-F04-02 | 공유 링크 진입 라우트에서 토마토 보내기(F-24)로 이동 | FE-web | F-04 AC3 | frontend/apps/web/src/app/(public)/**, frontend/apps/web/src/proxy.ts, frontend/apps/web/src/components/features/share-link/**, frontend/apps/web/src/mocks/** | T-F01-98, 링크 경로 형식 확정 | cd frontend && pnpm lint && pnpm check-types. 수동 확인: MSW 목 | MEO-55 |
 | T-F04-03 | 딥링크 수신과 앱 설치 여부 분기(앱 로그인 또는 앱스토어) | FE-mobile | F-04, home F-16 | frontend/apps/mobile/src/** | 링크 경로 형식 확정 / 보류: 앱 설치 감지 방식 | 수동 확인: 실기기. cd frontend && pnpm lint && pnpm check-types | MEO-48 |
 | T-F01-99 | 실서버 연동 확인(목 끄고 C-2 및 확정된 계약 확인) | FE-web | F-02~F-04 | - | T-F03-02, T-F03-03, T-F04-01 | 수동 확인: `NEXT_PUBLIC_API_MOCKING` 끄고 로그인·프로필 흐름. 목으로만 본 AC는 "실서버 연동 미검증" | MEO-56 |
 
