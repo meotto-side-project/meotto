@@ -1,7 +1,10 @@
+import { http, HttpResponse } from "msw";
 import { NextRequest } from "next/server";
 import { expect, test } from "vitest";
 
+import { apiUrl } from "@/mocks/apiUrl";
 import { SHARE_LINK_MOCK_TOKENS } from "@/mocks/handlers/shareLink";
+import { server } from "@/mocks/server";
 
 import { proxy } from "./proxy";
 
@@ -25,4 +28,22 @@ test("탈퇴한 회원의 토큰은 404로 응답한다", async () => {
 
 test("잘못된 퍼센트 인코딩 토큰은 404로 응답한다", async () => {
   expect((await run("%E0%A4%A")).status).toBe(404);
+});
+
+test("해석 중 서버 오류(5xx)가 나면 404로 응답한다", async () => {
+  server.use(
+    http.get(apiUrl("/api/share-links/:token"), () =>
+      HttpResponse.json({ name: "INTERNAL", message: "오류" }, { status: 500 }),
+    ),
+  );
+
+  expect((await run("any-token")).status).toBe(404);
+});
+
+test("해석 중 네트워크 오류가 나면 404로 응답한다", async () => {
+  server.use(
+    http.get(apiUrl("/api/share-links/:token"), () => HttpResponse.error()),
+  );
+
+  expect((await run("any-token")).status).toBe(404);
 });
