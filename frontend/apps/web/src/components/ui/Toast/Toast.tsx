@@ -11,7 +11,7 @@ const Toast = ({ message, className, ...props }: ToastProps) => {
     <div
       role="status"
       className={cn(
-        "pointer-events-none fixed inset-x-6.75 bottom-[max(env(safe-area-inset-bottom),2rem)] flex justify-center",
+        "pointer-events-none fixed inset-x-6.75 top-[calc(max(env(safe-area-inset-top),1rem)+var(--spacing)*13.5)] flex justify-center",
         className,
       )}
       {...props}

@@ -20,6 +20,16 @@ test("message가 있으면 status 영역에 보여준다", () => {
   );
 });
 
+test("하단이 아니라 헤더 아래 상단에 고정된다", () => {
+  render(<Toast message="안내" />);
+
+  const status = screen.getByRole("status");
+  expect(status).toHaveClass("fixed");
+  expect(status.className).toContain("top-[calc(");
+  expect(status.className).toContain("env(safe-area-inset-top)");
+  expect(status.className).not.toContain("bottom-");
+});
+
 test("message가 null이면 status 영역만 있고 비어 있다", () => {
   render(<Toast message={null} />);
 
