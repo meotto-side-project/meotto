@@ -54,9 +54,9 @@ const TextField = ({
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? errorId : undefined}
           className={cn(
-            "h-15.5 w-full rounded-md border border-transparent bg-gray-50 px-7.5 text-body-m text-black outline-none placeholder:text-gray-300",
-            onClear && "pr-16",
-            error && "border-danger",
+            "h-15.5 w-full rounded-md border bg-gray-50 text-body-m text-black outline-none placeholder:text-gray-300",
+            onClear ? "pl-7.5 pr-16" : "px-7.5",
+            error ? "border-danger" : "border-transparent",
           )}
           onBlur={onBlur}
           {...props}

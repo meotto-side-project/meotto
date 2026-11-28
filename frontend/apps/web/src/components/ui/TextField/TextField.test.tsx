@@ -18,14 +18,16 @@ test("error가 있으면 aria-invalid와 설명으로 연결하고 테두리를 
   expect(input).toHaveAttribute("aria-invalid", "true");
   expect(input).toHaveAccessibleDescription("잘못된 이름이에요.");
   expect(input).toHaveClass("border-danger");
+  expect(input).not.toHaveClass("border-transparent");
 });
 
-test("error가 없으면 aria-invalid를 붙이지 않는다", () => {
+test("error가 없으면 aria-invalid를 붙이지 않고 투명 테두리만 쓴다", () => {
   render(<TextField label="이름" />);
 
-  expect(screen.getByRole("textbox", { name: "이름" })).not.toHaveAttribute(
-    "aria-invalid",
-  );
+  const input = screen.getByRole("textbox", { name: "이름" });
+  expect(input).not.toHaveAttribute("aria-invalid");
+  expect(input).toHaveClass("border-transparent");
+  expect(input).not.toHaveClass("border-danger");
 });
 
 test("포커스 중에만 지우기 버튼을 보여주고 누르면 onClear를 호출한다", async () => {
